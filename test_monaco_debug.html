@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monaco Editor Debug</title>
+    <script src="https://unpkg.com/monaco-editor@0.44.0/min/vs/loader.js"></script>
+</head>
+<body>
+    <h1>Monaco Editor Debug</h1>
+    <div id="editor" style="width: 600px; height: 300px; border: 1px solid #ccc;"></div>
+    <div>
+        <button id="get-value">Get Editor Value</button>
+        <button id="set-value">Set Test Value</button>
+        <button id="test-save-workflow">Test Save Workflow</button>
+    </div>
+    <div id="results" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; max-height: 300px; overflow-y: auto;"></div>
+
+    <script type="module">
+        import { ApiClient } from './frontend/js/services/ApiClient.js';
+        
+        const apiClient = new ApiClient();
+        const results = document.getElementById('results');
+        let editor = null;
+        
+        function log(message) {
+            console.log(message);
+            results.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearLog() {
+            results.innerHTML = '';
+        }
+        
+        // Initialize Monaco Editor
+        if (typeof require !== 'undefined') {
+            require.config({ 
+                paths: { 
+                    vs: 'https://unpkg.com/monaco-editor@0.44.0/min/vs' 
+                } 
+            });
+            
+            require(['vs/editor/editor.main'], function() {
+                log('✅ Monaco Editor loaded');
+                
+                editor = monaco.editor.create(document.getElementById('editor'), {
+                    value: 'You are a helpful assistant.',
+                    language: 'markdown',
+                    theme: 'vs',
+                    automaticLayout: true,
+                    wordWrap: 'on',
+                    minimap: { enabled: false }
+                });
+                
+                log('✅ Monaco Editor created');
+            });
+        }
+        
+        document.getElementById('get-value').addEventListener('click', () => {
+            clearLog();
+            log('🔍 Getting editor value...');
+            
+            if (!editor) {
+                log('❌ Editor not initialized');
+                return;
+            }
+            
+            const value = editor.getValue();
+            log(`📝 Editor value: "${value}"`);
+            log(`📏 Length: ${value.length} characters`);
+            log(`🔍 Trimmed: "${value.trim()}"`);
+            log(`✅ Validation would ${value.trim() ? 'PASS' : 'FAIL'}`);
+        });
+        
+        document.getElementById('set-value').addEventListener('click', () => {
+            clearLog();
+            log('📝 Setting test value...');
+            
+            if (!editor) {
+                log('❌ Editor not initialized');
+                return;
+            }
+            
+            const testValue = 'You are a test assistant for debugging purposes.';
+            editor.setValue(testValue);
+            log(`✅ Set value: "${testValue}"`);
+        });
+        
+        document.getElementById('test-save-workflow').addEventListener('click', async () => {
+            clearLog();
+            log('🧪 Testing complete save workflow...');
+            
+            if (!editor) {
+                log('❌ Editor not initialized');
+                return;
+            }
+            
+            try {
+                // Simulate WorkbenchPanel workflow
+                const systemPrompt = editor.getValue()?.trim();
+                log(`📝 System prompt: "${systemPrompt}"`);
+                
+                if (!systemPrompt) {
+                    log('❌ Validation failed: empty system prompt');
+                    return;
+                }
+                log('✅ Validation passed');
+                
+                // Simulate getPromptData()
+                const promptData = {
+                    system_prompt: systemPrompt,
+                    model: 'llama2',
+                    temperature: 0.7
+                };
+                log(`📋 Base prompt data: ${JSON.stringify(promptData, null, 2)}`);
+                
+                // Simulate dialog result
+                const dialogResult = {
+                    name: `Monaco Test ${Date.now()}`,
+                    description: 'Test from Monaco debug'
+                };
+                log(`📋 Dialog result: ${JSON.stringify(dialogResult, null, 2)}`);
+                
+                // Simulate final data merge
+                const finalData = {
+                    name: dialogResult.name,
+                    description: dialogResult.description,
+                    ...promptData
+                };
+                log(`📋 Final data: ${JSON.stringify(finalData, null, 2)}`);
+                
+                // Test API call
+                log('🌐 Making API call...');
+                const savedPrompt = await apiClient.createPrompt(finalData);
+                log(`✅ Save successful: ${JSON.stringify(savedPrompt, null, 2)}`);
+                
+                log('🎉 Complete workflow test PASSED!');
+                
+            } catch (error) {
+                log(`❌ Workflow test FAILED: ${error.message}`);
+                console.error('Full error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

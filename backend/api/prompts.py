@@ -53,21 +53,21 @@ def validate_prompt_data(data, required_fields=None):
             errors[field] = f'{field.replace("_", " ").title()} is required'
     
     # Validate specific fields if present
-    if 'name' in data and data['name']:
+    if 'name' in data and data['name'] is not None:
         name = data['name'].strip()
         if len(name) > 255:
             errors['name'] = 'Name cannot exceed 255 characters'
         elif not name:
             errors['name'] = 'Name cannot be empty'
     
-    if 'system_prompt' in data and data['system_prompt']:
+    if 'system_prompt' in data and data['system_prompt'] is not None:
         system_prompt = data['system_prompt'].strip()
         if len(system_prompt) > 50000:
             errors['system_prompt'] = 'System prompt cannot exceed 50,000 characters'
         elif not system_prompt:
             errors['system_prompt'] = 'System prompt cannot be empty'
     
-    if 'model' in data and data['model']:
+    if 'model' in data and data['model'] is not None:
         model = data['model'].strip()
         if len(model) > 100:
             errors['model'] = 'Model name cannot exceed 100 characters'
@@ -82,7 +82,7 @@ def validate_prompt_data(data, required_fields=None):
         except (ValueError, TypeError):
             errors['temperature'] = 'Temperature must be a valid number'
     
-    if 'description' in data and data['description']:
+    if 'description' in data and data['description'] is not None:
         description = data['description'].strip()
         if len(description) > 1000:
             errors['description'] = 'Description cannot exceed 1,000 characters'
@@ -163,7 +163,7 @@ def create_prompt():
         # Get JSON data with error handling
         try:
             data = request.get_json(force=True)
-        except Exception:
+        except Exception as e:
             return jsonify({
                 'error': True,
                 'message': 'Request body must contain valid JSON data',
@@ -189,13 +189,21 @@ def create_prompt():
         
         session = get_db_session()
         
-        # Create new prompt instance
+        # Create new prompt instance with safe field access
+        description_value = data.get('description')
+        if description_value is not None:
+            description_value = description_value.strip() or None
+        
+        name_value = data.get('name', '').strip()
+        system_prompt_value = data.get('system_prompt', '').strip()
+        model_value = (data.get('model') or 'llama2').strip()
+        
         prompt = Prompt(
-            name=data['name'].strip(),
-            system_prompt=data['system_prompt'].strip(),
-            model=data.get('model', 'llama2').strip(),
+            name=name_value,
+            system_prompt=system_prompt_value,
+            model=model_value,
             temperature=float(data.get('temperature', 0.7)),
-            description=data.get('description', '').strip() or None
+            description=description_value
         )
         
         # Add to session and commit

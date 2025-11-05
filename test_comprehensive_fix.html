@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Fix Test</title>
+    <style>
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .toast {
+            background: #333;
+            color: white;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            max-width: 300px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .toast.success { background: #28a745; }
+        .toast.error { background: #dc3545; }
+        .toast.warning { background: #ffc107; color: #212529; }
+        .toast.info { background: #17a2b8; }
+    </style>
+</head>
+<body>
+    <h1>Comprehensive Fix Test</h1>
+    <div>
+        <button id="test-toast-manager">Test ToastManager</button>
+        <button id="test-api-client">Test ApiClient</button>
+        <button id="test-library-simulation">Test Library Simulation</button>
+    </div>
+    <div id="results" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; max-height: 400px; overflow-y: auto;"></div>
+
+    <script type="module">
+        import { ToastManager } from './frontend/js/utils/ToastManager.js';
+        import { ApiClient } from './frontend/js/services/ApiClient.js';
+        
+        const apiClient = new ApiClient();
+        const results = document.getElementById('results');
+        
+        function log(message) {
+            console.log(message);
+            results.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearLog() {
+            results.innerHTML = '';
+        }
+        
+        // Test ToastManager
+        document.getElementById('test-toast-manager').addEventListener('click', () => {
+            clearLog();
+            log('🧪 Testing ToastManager...');
+            
+            try {
+                // Initialize ToastManager
+                ToastManager.init();
+                log('✅ ToastManager initialized');
+                
+                // Test different toast types
+                ToastManager.success('Success toast test');
+                log('✅ Success toast shown');
+                
+                setTimeout(() => {
+                    ToastManager.error('Error toast test');
+                    log('✅ Error toast shown');
+                }, 1000);
+                
+                setTimeout(() => {
+                    ToastManager.warning('Warning toast test');
+                    log('✅ Warning toast shown');
+                }, 2000);
+                
+                log('🎉 ToastManager test completed');
+                
+            } catch (error) {
+                log(`❌ ToastManager test failed: ${error.message}`);
+                console.error('Full error:', error);
+            }
+        });
+        
+        // Test ApiClient
+        document.getElementById('test-api-client').addEventListener('click', async () => {
+            clearLog();
+            log('🧪 Testing ApiClient...');
+            
+            try {
+                // Test loading prompts
+                const prompts = await apiClient.getPrompts();
+                log(`✅ Loaded ${prompts.length} prompts`);
+                
+                // Test creating a prompt
+                const promptData = {
+                    name: `Comprehensive Test ${Date.now()}`,
+                    system_prompt: 'You are a comprehensive test assistant.',
+                    model: 'llama2',
+                    temperature: 0.7
+                };
+                
+                const savedPrompt = await apiClient.createPrompt(promptData);
+                log(`✅ Created prompt with ID: ${savedPrompt.id}`);
+                
+                // Test updating the prompt
+                const updatedData = {
+                    ...promptData,
+                    temperature: 0.8
+                };
+                
+                const updatedPrompt = await apiClient.updatePrompt(savedPrompt.id, updatedData);
+                log(`✅ Updated prompt temperature to: ${updatedPrompt.temperature}`);
+                
+                // Test deleting the prompt
+                await apiClient.deletePrompt(savedPrompt.id);
+                log(`✅ Deleted prompt`);
+                
+                log('🎉 ApiClient test completed');
+                
+            } catch (error) {
+                log(`❌ ApiClient test failed: ${error.message}`);
+                console.error('Full error:', error);
+            }
+        });
+        
+        // Test Library Simulation (simulates what LibraryPanel does)
+        document.getElementById('test-library-simulation').addEventListener('click', async () => {
+            clearLog();
+            log('🧪 Testing Library Simulation...');
+            
+            try {
+                // Initialize ToastManager first
+                ToastManager.init();
+                log('✅ ToastManager initialized');
+                
+                // Simulate loading prompts (like LibraryPanel does)
+                const prompts = await apiClient.getPrompts();
+                log(`✅ Loaded ${prompts.length} prompts`);
+                
+                if (prompts.length > 0) {
+                    // Simulate selecting a prompt (like handleLoadPrompt)
+                    const prompt = prompts[0];
+                    ToastManager.success(`Loaded prompt: ${prompt.name}`);
+                    log(`✅ Simulated loading prompt: ${prompt.name}`);
+                }
+                
+                // Simulate creating a new prompt
+                const newPromptData = {
+                    name: `Library Simulation Test ${Date.now()}`,
+                    system_prompt: 'You are a library simulation test assistant.',
+                    model: 'llama2',
+                    temperature: 0.7
+                };
+                
+                const newPrompt = await apiClient.createPrompt(newPromptData);
+                ToastManager.success(`Created prompt: ${newPrompt.name}`);
+                log(`✅ Simulated creating prompt: ${newPrompt.name}`);
+                
+                // Clean up
+                await apiClient.deletePrompt(newPrompt.id);
+                ToastManager.success(`Deleted prompt: ${newPrompt.name}`);
+                log(`✅ Cleaned up test prompt`);
+                
+                log('🎉 Library simulation test completed');
+                
+            } catch (error) {
+                log(`❌ Library simulation test failed: ${error.message}`);
+                console.error('Full error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Save Debug Test</title>
+</head>
+<body>
+    <h1>Save Debug Test</h1>
+    <div>
+        <label>Name: <input type="text" id="prompt-name" value="Debug Test Prompt"></label><br><br>
+        <label>System Prompt: <textarea id="system-prompt" rows="4" cols="50">You are a helpful debugging assistant.</textarea></label><br><br>
+        <button id="test-save-direct">Test Direct API Save</button>
+        <button id="test-validation">Test Validation</button>
+    </div>
+    <div id="results" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;"></div>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message) {
+            console.log(message);
+            results.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+        }
+        
+        // Test direct API call
+        document.getElementById('test-save-direct').addEventListener('click', async () => {
+            results.innerHTML = '';
+            log('Starting direct API test...');
+            
+            try {
+                const promptData = {
+                    name: document.getElementById('prompt-name').value,
+                    system_prompt: document.getElementById('system-prompt').value,
+                    model: 'llama2',
+                    temperature: 0.7
+                };
+                
+                log(`Sending data: ${JSON.stringify(promptData, null, 2)}`);
+                
+                const response = await fetch('/api/prompts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(promptData)
+                });
+                
+                log(`Response status: ${response.status} ${response.statusText}`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    log(`Error response: ${errorText}`);
+                    return;
+                }
+                
+                const responseData = await response.json();
+                log(`Success response: ${JSON.stringify(responseData, null, 2)}`);
+                
+            } catch (error) {
+                log(`Exception: ${error.message}`);
+                console.error('Full error:', error);
+            }
+        });
+        
+        // Test validation
+        document.getElementById('test-validation').addEventListener('click', () => {
+            results.innerHTML = '';
+            log('Testing validation...');
+            
+            const name = document.getElementById('prompt-name').value.trim();
+            const systemPrompt = document.getElementById('system-prompt').value.trim();
+            
+            log(`Name: "${name}" (length: ${name.length})`);
+            log(`System Prompt: "${systemPrompt}" (length: ${systemPrompt.length})`);
+            
+            if (!name) {
+                log('❌ Name is empty');
+            } else {
+                log('✅ Name is valid');
+            }
+            
+            if (!systemPrompt) {
+                log('❌ System prompt is empty');
+            } else {
+                log('✅ System prompt is valid');
+            }
+        });
+    </script>
+</body>
+</html>

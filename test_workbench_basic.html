@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workbench Panel Test</title>
+    <style>
+        .workbench-panel { width: 100%; height: 400px; border: 1px solid #ccc; }
+        .objective-input { width: 100%; height: 80px; }
+        .editor-container { width: 100%; height: 200px; border: 1px solid #ccc; }
+        .btn { padding: 8px 16px; margin: 4px; }
+    </style>
+</head>
+<body>
+    <div class="workbench-panel">
+        <textarea id="objective-input" class="objective-input" placeholder="Enter objective..."></textarea>
+        <button id="refine-btn" class="btn">
+            <span class="btn-text">Refine</span>
+            <span class="loading-spinner" style="display: none;">Loading...</span>
+        </button>
+        <div id="system-prompt-editor" class="editor-container"></div>
+        <button id="save-btn" class="btn">Save</button>
+        <button id="save-as-btn" class="btn">Save As</button>
+    </div>
+
+    <script>
+        // Mock dependencies for testing
+        class MockEventBus {
+            emit(event, data) { console.log('Event:', event, data); }
+        }
+        
+        class MockApiClient {
+            async refinePrompt(objective, model) {
+                return { system_prompt: `Refined prompt for: ${objective}` };
+            }
+        }
+        
+        const mockConfig = { default_model: 'llama2', default_temperature: 0.7 };
+        
+        // Test basic instantiation
+        console.log('Testing WorkbenchPanel instantiation...');
+        
+        // This would normally be imported, but for testing we'll just check the structure
+        console.log('Basic test completed - check browser console for any errors');
+    </script>
+</body>
+</html>

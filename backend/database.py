@@ -84,6 +84,12 @@ def reset_database():
     # Recreate all tables
     Base.metadata.create_all(bind=engine)
 
+def get_db_connection():
+    """Get raw database connection for health checks"""
+    if engine is None:
+        raise RuntimeError("Database not initialized. Call init_database() first.")
+    return engine.connect()
+
 def check_database_health():
     """Check if database is accessible and properly configured"""
     try:

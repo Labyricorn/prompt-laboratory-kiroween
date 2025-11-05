@@ -5,12 +5,171 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PromptLab</title>
     <link rel="stylesheet" href="css/styles.css">
+    <!-- Monaco Editor -->
+    <script src="https://unpkg.com/monaco-editor@0.44.0/min/vs/loader.js"></script>
 </head>
 <body>
     <div id="app">
-        <h1>PromptLab</h1>
-        <p>Prompt Engineering Environment</p>
+        <header class="app-header">
+            <h1>PromptLab</h1>
+            <button id="settings-btn" class="settings-button" aria-label="Open Settings">
+                <span class="settings-icon">⚙️</span>
+            </button>
+        </header>
+        
+        <main class="app-main">
+            <!-- Library Panel -->
+            <section class="library-panel" role="region" aria-label="Prompt Library">
+                <div class="panel-header">
+                    <h2>Library</h2>
+                    <div class="library-actions">
+                        <button id="new-prompt-btn" class="btn btn-primary" aria-label="Create New Prompt">New</button>
+                        <button id="export-btn" class="btn btn-secondary" aria-label="Export Library">Export</button>
+                        <button id="import-btn" class="btn btn-secondary" aria-label="Import Library">Import</button>
+                    </div>
+                </div>
+                
+                <div class="search-container">
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        class="search-input" 
+                        placeholder="Search prompts..."
+                        aria-label="Search prompts"
+                    >
+                </div>
+                
+                <div class="prompt-list" id="prompt-list" role="list" aria-label="Available prompts">
+                    <!-- Prompt items will be populated by JavaScript -->
+                </div>
+            </section>
+            
+            <!-- Workbench Panel -->
+            <section class="workbench-panel" role="region" aria-label="Prompt Workbench">
+                <div class="panel-header">
+                    <h2>Workbench</h2>
+                    <div class="workbench-actions">
+                        <button id="save-btn" class="btn btn-primary" aria-label="Save Prompt">Save</button>
+                        <button id="save-as-btn" class="btn btn-secondary" aria-label="Save As New Prompt">Save As</button>
+                    </div>
+                </div>
+                
+                <div class="workbench-content">
+                    <div class="objective-section">
+                        <label for="objective-input" class="section-label">Objective</label>
+                        <textarea 
+                            id="objective-input" 
+                            class="objective-input" 
+                            placeholder="Describe what you want your prompt to accomplish..."
+                            aria-describedby="objective-help"
+                        ></textarea>
+                        <div id="objective-help" class="help-text">
+                            Enter a simple description of your prompt's goal. Use the Refine button to generate a detailed system prompt.
+                        </div>
+                        <button id="refine-btn" class="btn btn-accent" aria-label="Refine objective into system prompt">
+                            <span class="btn-text">Refine</span>
+                            <span class="loading-spinner" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                    
+                    <div class="editor-section">
+                        <div class="section-header">
+                            <label for="system-prompt-editor" class="section-label">System Prompt</label>
+                            <button id="copy-prompt-btn" class="btn btn-small btn-secondary" aria-label="Copy system prompt to clipboard" title="Copy to clipboard">
+                                <span class="copy-icon">📋</span>
+                                <span class="btn-text">Copy</span>
+                            </button>
+                        </div>
+                        <div id="system-prompt-editor" class="editor-container" aria-label="System prompt editor"></div>
+                        <div class="attribution">
+                            Built with <a href="https://kiro.dev/" target="_blank" rel="noopener noreferrer" class="kiro-link">Kiro</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Test Chamber Panel -->
+            <section class="test-chamber-panel" role="region" aria-label="Prompt Test Chamber">
+                <div class="panel-header">
+                    <h2>Test Chamber</h2>
+                    <button id="run-test-btn" class="btn btn-accent" aria-label="Run prompt test">
+                        <span class="btn-text">Run Test</span>
+                        <span class="loading-spinner" aria-hidden="true"></span>
+                    </button>
+                </div>
+                
+                <div class="test-content">
+                    <div class="test-input-section">
+                        <label for="test-message-input" class="section-label">Test Message</label>
+                        <textarea 
+                            id="test-message-input" 
+                            class="test-input" 
+                            placeholder="Enter your test message here..."
+                            aria-describedby="test-input-help"
+                        ></textarea>
+                        <div id="test-input-help" class="help-text">
+                            This message will be sent to the AI model using your system prompt.
+                        </div>
+                    </div>
+                    
+                    <div class="test-parameters">
+                        <div class="parameter-group">
+                            <label for="model-select" class="parameter-label">Model</label>
+                            <select id="model-select" class="parameter-select" aria-label="Select AI model">
+                                <option value="">Loading models...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="parameter-group">
+                            <label for="temperature-slider" class="parameter-label">
+                                Temperature: <span id="temperature-value">0.7</span>
+                            </label>
+                            <input 
+                                type="range" 
+                                id="temperature-slider" 
+                                class="parameter-slider" 
+                                min="0" 
+                                max="2" 
+                                step="0.1" 
+                                value="0.7"
+                                aria-describedby="temperature-help"
+                            >
+                            <div id="temperature-help" class="help-text">
+                                Controls randomness: 0 = deterministic, 2 = very creative
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="test-results">
+                        <div class="result-section">
+                            <label class="section-label">Response</label>
+                            <div id="test-response" class="response-output" aria-live="polite"></div>
+                        </div>
+                        
+                        <div class="result-section">
+                            <label class="section-label">YAML Configuration</label>
+                            <div class="yaml-container">
+                                <pre id="yaml-output" class="yaml-output" aria-live="polite"></pre>
+                                <button id="copy-yaml-btn" class="btn btn-small" aria-label="Copy YAML configuration">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <!-- Loading overlay -->
+        <div id="loading-overlay" class="loading-overlay" aria-hidden="true">
+            <div class="loading-content">
+                <div class="loading-spinner-large"></div>
+                <p class="loading-text">Loading...</p>
+            </div>
+        </div>
+        
+        <!-- Toast notifications -->
+        <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
     </div>
+    
     <script type="module" src="js/main.js"></script>
 </body>
 </html>

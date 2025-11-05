@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detailed Debug Test</title>
+</head>
+<body>
+    <h1>Detailed Debug Test</h1>
+    <div>
+        <button id="test-api-direct">Test API Direct</button>
+        <button id="test-api-client">Test API Client</button>
+        <button id="test-validation">Test Validation</button>
+    </div>
+    <div id="results" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; max-height: 400px; overflow-y: auto;"></div>
+
+    <script type="module">
+        import { ApiClient } from './frontend/js/services/ApiClient.js';
+        
+        const apiClient = new ApiClient();
+        const results = document.getElementById('results');
+        
+        function log(message) {
+            console.log(message);
+            results.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearLog() {
+            results.innerHTML = '';
+        }
+        
+        // Test direct fetch API
+        document.getElementById('test-api-direct').addEventListener('click', async () => {
+            clearLog();
+            log('Testing direct fetch API...');
+            
+            try {
+                const promptData = {
+                    name: 'Direct Test Prompt',
+                    system_prompt: 'You are a direct test assistant.',
+                    model: 'llama2',
+                    temperature: 0.7
+                };
+                
+                log(`Sending: ${JSON.stringify(promptData, null, 2)}`);
+                
+                const response = await fetch('/api/prompts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(promptData)
+                });
+                
+                log(`Response status: ${response.status} ${response.statusText}`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    log(`❌ Error response: ${errorText}`);
+                    return;
+                }
+                
+                const responseData = await response.json();
+                log(`✅ Direct API success: ${JSON.stringify(responseData, null, 2)}`);
+                
+            } catch (error) {
+                log(`❌ Direct API error: ${error.message}`);
+                console.error('Full error:', error);
+            }
+        });
+        
+        // Test ApiClient
+        document.getElementById('test-api-client').addEventListener('click', async () => {
+            clearLog();
+            log('Testing ApiClient...');
+            
+            try {
+                const promptData = {
+                    name: 'ApiClient Test Prompt',
+                    system_prompt: 'You are an ApiClient test assistant.',
+                    model: 'llama2',
+                    temperature: 0.7
+                };
+                
+                log(`Sending via ApiClient: ${JSON.stringify(promptData, null, 2)}`);
+                
+                const savedPrompt = await apiClient.createPrompt(promptData);
+                
+                log(`✅ ApiClient success: ${JSON.stringify(savedPrompt, null, 2)}`);
+                
+            } catch (error) {
+                log(`❌ ApiClient error: ${error.message}`);
+                log(`Error details: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`);
+                console.error('Full error:', error);
+            }
+        });
+        
+        // Test validation
+        document.getElementById('test-validation').addEventListener('click', () => {
+            clearLog();
+            log('Testing validation logic...');
+            
+            // Simulate WorkbenchPanel validation
+            const systemPrompt = 'Test system prompt';
+            
+            log(`System prompt: "${systemPrompt}"`);
+            log(`System prompt length: ${systemPrompt.length}`);
+            log(`System prompt trimmed: "${systemPrompt.trim()}"`);
+            log(`Validation result: ${!!systemPrompt.trim()}`);
+            
+            if (!systemPrompt.trim()) {
+                log('❌ Validation would fail - empty system prompt');
+            } else {
+                log('✅ Validation would pass');
+            }
+        });
+    </script>
+</body>
+</html>

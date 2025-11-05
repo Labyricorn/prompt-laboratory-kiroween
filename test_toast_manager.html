@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToastManager Test</title>
+    <style>
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .toast {
+            background: #333;
+            color: white;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            max-width: 300px;
+        }
+        .toast.success { background: #28a745; }
+        .toast.error { background: #dc3545; }
+        .toast.warning { background: #ffc107; color: #212529; }
+        .toast.info { background: #17a2b8; }
+    </style>
+</head>
+<body>
+    <h1>ToastManager Test</h1>
+    <div>
+        <button id="test-success">Test Success Toast</button>
+        <button id="test-error">Test Error Toast</button>
+        <button id="test-warning">Test Warning Toast</button>
+        <button id="test-info">Test Info Toast</button>
+    </div>
+    <div id="results" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;"></div>
+    
+    <!-- Toast container -->
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <script type="module">
+        import { ToastManager } from './frontend/js/utils/ToastManager.js';
+        
+        const results = document.getElementById('results');
+        
+        function log(message) {
+            console.log(message);
+            results.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+        }
+        
+        // Initialize ToastManager
+        ToastManager.init();
+        log('ToastManager initialized');
+        
+        document.getElementById('test-success').addEventListener('click', () => {
+            log('Testing success toast...');
+            ToastManager.success('This is a success message!');
+        });
+        
+        document.getElementById('test-error').addEventListener('click', () => {
+            log('Testing error toast...');
+            ToastManager.error('This is an error message!');
+        });
+        
+        document.getElementById('test-warning').addEventListener('click', () => {
+            log('Testing warning toast...');
+            ToastManager.warning('This is a warning message!');
+        });
+        
+        document.getElementById('test-info').addEventListener('click', () => {
+            log('Testing info toast...');
+            ToastManager.show('This is an info message!', 'info');
+        });
+    </script>
+</body>
+</html>

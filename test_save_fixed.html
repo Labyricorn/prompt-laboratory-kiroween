@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Save Fix Test</title>
+</head>
+<body>
+    <h1>Save Fix Test</h1>
+    <div>
+        <label>Name: <input type="text" id="prompt-name" value="Fixed Test Prompt"></label><br><br>
+        <label>System Prompt: <textarea id="system-prompt" rows="4" cols="50">You are a helpful assistant after the fix.</textarea></label><br><br>
+        <button id="test-save-frontend">Test Frontend Save</button>
+    </div>
+    <div id="results" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;"></div>
+
+    <script type="module">
+        import { ApiClient } from './frontend/js/services/ApiClient.js';
+        
+        const apiClient = new ApiClient();
+        const results = document.getElementById('results');
+        
+        function log(message) {
+            console.log(message);
+            results.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+        }
+        
+        document.getElementById('test-save-frontend').addEventListener('click', async () => {
+            results.innerHTML = '';
+            log('Testing frontend save with fixed ApiClient...');
+            
+            try {
+                const promptData = {
+                    name: document.getElementById('prompt-name').value,
+                    system_prompt: document.getElementById('system-prompt').value,
+                    model: 'llama2',
+                    temperature: 0.7
+                };
+                
+                log(`Sending data: ${JSON.stringify(promptData, null, 2)}`);
+                
+                // This should now work with the fixed response handling
+                const savedPrompt = await apiClient.createPrompt(promptData);
+                
+                log(`✅ Save successful!`);
+                log(`Saved prompt: ${JSON.stringify(savedPrompt, null, 2)}`);
+                
+                // Test that we can retrieve it
+                const prompts = await apiClient.getPrompts();
+                log(`✅ Retrieved ${prompts.length} prompts from library`);
+                
+            } catch (error) {
+                log(`❌ Save failed: ${error.message}`);
+                console.error('Full error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

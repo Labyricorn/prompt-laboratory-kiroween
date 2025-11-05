@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Verification Test</title>
+</head>
+<body>
+    <h1>Final Verification Test</h1>
+    <div>
+        <button id="test-complete-flow">Test Complete Save Flow</button>
+        <button id="test-load-prompts">Test Load Prompts</button>
+    </div>
+    <div id="results" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; max-height: 400px; overflow-y: auto;"></div>
+
+    <script type="module">
+        import { ApiClient } from './frontend/js/services/ApiClient.js';
+        
+        const apiClient = new ApiClient();
+        const results = document.getElementById('results');
+        
+        function log(message) {
+            console.log(message);
+            results.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearLog() {
+            results.innerHTML = '';
+        }
+        
+        // Test complete save flow
+        document.getElementById('test-complete-flow').addEventListener('click', async () => {
+            clearLog();
+            log('🧪 Testing complete save flow...');
+            
+            try {
+                // Step 1: Create a prompt
+                const promptData = {
+                    name: `Verification Test ${Date.now()}`,
+                    system_prompt: 'You are a verification test assistant.',
+                    model: 'llama2',
+                    temperature: 0.7,
+                    description: 'Test prompt for verification'
+                };
+                
+                log(`📝 Creating prompt: ${promptData.name}`);
+                const savedPrompt = await apiClient.createPrompt(promptData);
+                log(`✅ Prompt created with ID: ${savedPrompt.id}`);
+                
+                // Step 2: Verify it appears in the list
+                log(`📋 Loading prompts list...`);
+                const prompts = await apiClient.getPrompts();
+                log(`✅ Loaded ${prompts.length} prompts`);
+                
+                const foundPrompt = prompts.find(p => p.id === savedPrompt.id);
+                if (foundPrompt) {
+                    log(`✅ Prompt found in list: ${foundPrompt.name}`);
+                } else {
+                    log(`❌ Prompt not found in list`);
+                }
+                
+                // Step 3: Update the prompt
+                log(`📝 Updating prompt...`);
+                const updatedData = {
+                    name: foundPrompt.name,
+                    system_prompt: 'You are an updated verification test assistant.',
+                    model: 'llama2',
+                    temperature: 0.8,
+                    description: 'Updated test prompt'
+                };
+                
+                const updatedPrompt = await apiClient.updatePrompt(savedPrompt.id, updatedData);
+                log(`✅ Prompt updated: temperature now ${updatedPrompt.temperature}`);
+                
+                // Step 4: Delete the prompt
+                log(`🗑️ Deleting prompt...`);
+                await apiClient.deletePrompt(savedPrompt.id);
+                log(`✅ Prompt deleted successfully`);
+                
+                log(`🎉 Complete flow test PASSED!`);
+                
+            } catch (error) {
+                log(`❌ Complete flow test FAILED: ${error.message}`);
+                console.error('Full error:', error);
+            }
+        });
+        
+        // Test load prompts
+        document.getElementById('test-load-prompts').addEventListener('click', async () => {
+            clearLog();
+            log('📋 Testing load prompts...');
+            
+            try {
+                const prompts = await apiClient.getPrompts();
+                log(`✅ Loaded ${prompts.length} prompts:`);
+                
+                prompts.forEach((prompt, index) => {
+                    log(`  ${index + 1}. ${prompt.name} (ID: ${prompt.id})`);
+                });
+                
+                if (prompts.length > 0) {
+                    log(`🎉 Load prompts test PASSED!`);
+                } else {
+                    log(`⚠️ No prompts found (this might be expected)`);
+                }
+                
+            } catch (error) {
+                log(`❌ Load prompts test FAILED: ${error.message}`);
+                console.error('Full error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

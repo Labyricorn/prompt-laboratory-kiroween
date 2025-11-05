@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend API Test</title>
+</head>
+<body>
+    <h1>Frontend API Test</h1>
+    <button id="test-save">Test Save Prompt</button>
+    <button id="test-load">Test Load Prompts</button>
+    <div id="results"></div>
+
+    <script type="module">
+        import { ApiClient } from './frontend/js/services/ApiClient.js';
+        
+        const apiClient = new ApiClient();
+        const results = document.getElementById('results');
+        
+        document.getElementById('test-save').addEventListener('click', async () => {
+            try {
+                results.innerHTML = 'Testing save...';
+                
+                const promptData = {
+                    name: 'Frontend Test Prompt',
+                    system_prompt: 'You are a test assistant.',
+                    model: 'llama2',
+                    temperature: 0.7
+                };
+                
+                const savedPrompt = await apiClient.createPrompt(promptData);
+                results.innerHTML = `<pre>Save Success: ${JSON.stringify(savedPrompt, null, 2)}</pre>`;
+                
+            } catch (error) {
+                results.innerHTML = `<pre>Save Error: ${error.message}</pre>`;
+                console.error('Save error:', error);
+            }
+        });
+        
+        document.getElementById('test-load').addEventListener('click', async () => {
+            try {
+                results.innerHTML = 'Testing load...';
+                
+                const prompts = await apiClient.getPrompts();
+                results.innerHTML = `<pre>Load Success: ${JSON.stringify(prompts, null, 2)}</pre>`;
+                
+            } catch (error) {
+                results.innerHTML = `<pre>Load Error: ${error.message}</pre>`;
+                console.error('Load error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Handling & Notifications Demo</title>
+    <link rel="stylesheet" href="frontend/css/styles.css">
+    <style>
+        body {
+            padding: 2rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .demo-section {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+        .demo-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .demo-form {
+            margin-top: 1rem;
+        }
+        .demo-form input, .demo-form textarea {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Error Handling & Notifications Demo</h1>
+    
+    <div class="demo-section">
+        <h2>Toast Notifications</h2>
+        <div class="demo-buttons">
+            <button id="success-btn" class="btn btn-accent">Success</button>
+            <button id="error-btn" class="btn btn-danger">Error</button>
+            <button id="warning-btn" class="btn btn-warning">Warning</button>
+            <button id="info-btn" class="btn btn-primary">Info</button>
+            <button id="confirm-btn" class="btn btn-secondary">Confirmation</button>
+        </div>
+    </div>
+    
+    <div class="demo-section">
+        <h2>Loading States</h2>
+        <div class="demo-buttons">
+            <button id="loading-btn" class="btn btn-primary">Show Loading</button>
+            <button id="progress-btn" class="btn btn-accent">Progress Operation</button>
+            <button id="batch-btn" class="btn btn-secondary">Batch Operation</button>
+        </div>
+    </div>
+    
+    <div class="demo-section">
+        <h2>Form Validation</h2>
+        <form class="demo-form" id="demo-form">
+            <input type="text" id="name-input" name="name" placeholder="Name (required)">
+            <input type="email" id="email-input" name="email" placeholder="Email (required)">
+            <textarea id="message-input" name="message" placeholder="Message (required)"></textarea>
+            <button type="submit" class="btn btn-primary">Validate Form</button>
+        </form>
+    </div>
+    
+    <div class="demo-section">
+        <h2>Network Simulation</h2>
+        <div class="demo-buttons">
+            <button id="network-success-btn" class="btn btn-accent">Simulate Success</button>
+            <button id="network-error-btn" class="btn btn-danger">Simulate Network Error</button>
+            <button id="api-error-btn" class="btn btn-warning">Simulate API Error</button>
+        </div>
+    </div>
+    
+    <!-- Required containers -->
+    <div id="loading-overlay" class="loading-overlay" aria-hidden="true">
+        <div class="loading-content">
+            <div class="loading-spinner-large"></div>
+            <p class="loading-text">Loading...</p>
+        </div>
+    </div>
+    
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+    
+    <script type="module">
+        import { NotificationManager } from './frontend/js/utils/NotificationManager.js';
+        import { ErrorHandler } from './frontend/js/utils/ErrorHandler.js';
+        
+        // Initialize the notification system
+        NotificationManager.init();
+        
+        // Toast notification demos
+        document.getElementById('success-btn').addEventListener('click', () => {
+            NotificationManager.success('Operation completed successfully!');
+        });
+        
+        document.getElementById('error-btn').addEventListener('click', () => {
+            NotificationManager.error('Something went wrong!', {
+                onRetry: () => {
+                    NotificationManager.info('Retry clicked!');
+                }
+            });
+        });
+        
+        document.getElementById('warning-btn').addEventListener('click', () => {
+            NotificationManager.warning('This is a warning message');
+        });
+        
+        document.getElementById('info-btn').addEventListener('click', () => {
+            NotificationManager.info('This is an informational message');
+        });
+        
+        document.getElementById('confirm-btn').addEventListener('click', () => {
+            NotificationManager.confirm('Are you sure you want to delete this item?', {
+                onConfirm: () => {
+                    NotificationManager.success('Item deleted');
+                },
+                onCancel: () => {
+                    NotificationManager.info('Deletion cancelled');
+                }
+            });
+        });
+        
+        // Loading state demos
+        document.getElementById('loading-btn').addEventListener('click', () => {
+            const operation = NotificationManager.startOperation(
+                'demo-loading',
+                'Processing your request...',
+                { showInOverlay: true }
+            );
+            
+            setTimeout(() => {
+                operation.complete('Request processed successfully');
+            }, 3000);
+        });
+        
+        document.getElementById('progress-btn').addEventListener('click', () => {
+            const operation = NotificationManager.startOperation(
+                'demo-progress',
+                'Starting operation...',
+                { showProgress: true, showInOverlay: true }
+            );
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 1;
+                operation.updateProgress(progress, 10, `Processing step ${progress}/10`);
+                
+                if (progress >= 10) {
+                    clearInterval(interval);
+                    operation.complete('All steps completed successfully');
+                }
+            }, 500);
+        });
+        
+        document.getElementById('batch-btn').addEventListener('click', () => {
+            let current = 0;
+            const total = 25;
+            
+            const batchOp = NotificationManager.showBatchProgress('Processing Items', current, total);
+            
+            const interval = setInterval(() => {
+                current += 1;
+                NotificationManager.showBatchProgress('Processing Items', current, total);
+                
+                if (current >= total) {
+                    clearInterval(interval);
+                    batchOp.complete(`Successfully processed ${total} items`);
+                }
+            }, 200);
+        });
+        
+        // Form validation demo
+        document.getElementById('demo-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const errors = {};
+            
+            if (!formData.get('name')) {
+                errors.name = 'Name is required';
+            }
+            
+            if (!formData.get('email')) {
+                errors.email = 'Email is required';
+            } else if (!/\S+@\S+\.\S+/.test(formData.get('email'))) {
+                errors.email = 'Please enter a valid email address';
+            }
+            
+            if (!formData.get('message')) {
+                errors.message = 'Message is required';
+            }
+            
+            if (Object.keys(errors).length > 0) {
+                NotificationManager.showValidationErrors(errors);
+            } else {
+                NotificationManager.clearValidationErrors();
+                NotificationManager.success('Form submitted successfully!');
+            }
+        });
+        
+        // Network simulation demos
+        document.getElementById('network-success-btn').addEventListener('click', async () => {
+            const operation = NotificationManager.startOperation(
+                'network-demo',
+                'Making API request...',
+                { showInToast: true }
+            );
+            
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            operation.complete('API request successful');
+        });
+        
+        document.getElementById('network-error-btn').addEventListener('click', async () => {
+            const operation = NotificationManager.startOperation(
+                'network-error-demo',
+                'Making API request...',
+                { showInToast: true }
+            );
+            
+            // Simulate network error
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            const networkError = new Error('Network connection failed');
+            networkError.isNetworkError = true;
+            
+            operation.fail('Network error occurred');
+            NotificationManager.error('Failed to connect to server', {
+                onRetry: () => {
+                    NotificationManager.info('Retrying network request...');
+                }
+            });
+        });
+        
+        document.getElementById('api-error-btn').addEventListener('click', async () => {
+            const operation = NotificationManager.startOperation(
+                'api-error-demo',
+                'Making API request...',
+                { showInToast: true }
+            );
+            
+            // Simulate API error
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            const apiError = new Error('Validation failed');
+            apiError.status = 400;
+            apiError.details = {
+                name: 'Name is required',
+                email: 'Invalid email format'
+            };
+            
+            operation.fail('API validation error');
+            
+            // Show validation errors
+            NotificationManager.showValidationErrors(apiError.details);
+        });
+    </script>
+</body>
+</html>

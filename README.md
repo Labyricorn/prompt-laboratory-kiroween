@@ -552,10 +552,15 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgments
 
+- **[Kiro.dev Team](https://kiro.dev)** for the incredible AI-powered development platform that made building PromptLab possible
 - **Ollama Team** for the excellent local AI platform
 - **Monaco Editor** for the powerful code editing experience
 - **Flask Community** for the robust web framework
 - **SQLAlchemy** for elegant database management
+
+---
+
+**Built with ❤️ using [Kiro](https://kiro.dev) - The AI-powered IDE for developers**
 
 ---
 

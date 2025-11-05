@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Save Fix Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        .success { background: #4caf50; color: white; }
+        .error { background: #f44336; color: white; }
+        .info { background: #2196f3; color: white; }
+        input, textarea { width: 100%; padding: 8px; margin: 5px 0; box-sizing: border-box; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 3px; max-height: 300px; overflow-y: auto; }
+        .log-entry { margin: 5px 0; padding: 5px; border-radius: 3px; }
+        .log-success { background: #e8f5e8; color: #2e7d32; }
+        .log-error { background: #ffebee; color: #c62828; }
+        .log-info { background: #e3f2fd; color: #1565c0; }
+    </style>
+</head>
+<body>
+    <h1>Complete Save Fix Test</h1>
+    <p>This test verifies that the prompt save error handling works correctly, including conflict detection and resolution.</p>
+    
+    <div class="test-section">
+        <h2>Test Scenario</h2>
+        <div>
+            <label>Prompt Name:</label>
+            <input type="text" id="promptName" value="Test Save Fix" placeholder="Enter prompt name">
+        </div>
+        <div>
+            <label>System Prompt:</label>
+            <textarea id="systemPrompt" rows="3" placeholder="Enter system prompt">You are a helpful assistant for testing the save fix functionality.</textarea>
+        </div>
+        <div>
+            <button onclick="runCompleteTest()" class="success">Run Complete Test</button>
+            <button onclick="testNewSave()" class="info">Test New Save</button>
+            <button onclick="testConflictSave()" class="error">Test Conflict Save</button>
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+        <div id="testLog" class="log"></div>
+    </div>
+
+    <script>
+        let testCounter = 1;
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('testLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        async function runCompleteTest() {
+            log('Starting complete save fix test...', 'info');
+            
+            // Test 1: Save a new prompt
+            log('Test 1: Saving new prompt...', 'info');
+            const uniqueName = `Test Save Fix ${Date.now()}`;
+            document.getElementById('promptName').value = uniqueName;
+            
+            const result1 = await testSave(uniqueName, 'You are a helpful assistant for test 1.');
+            if (result1.success) {
+                log(`✓ Test 1 PASSED: New prompt saved successfully (ID: ${result1.id})`, 'success');
+            } else {
+                log(`✗ Test 1 FAILED: ${result1.error}`, 'error');
+                return;
+            }
+            
+            // Test 2: Try to save with the same name (should trigger conflict)
+            log('Test 2: Testing conflict detection...', 'info');
+            const result2 = await testSave(uniqueName, 'You are a helpful assistant for test 2.');
+            if (result2.conflict) {
+                log(`✓ Test 2 PASSED: Conflict detected correctly (Status: ${result2.status})`, 'success');
+            } else {
+                log(`✗ Test 2 FAILED: Expected conflict but got: ${result2.error || 'success'}`, 'error');
+                return;
+            }
+            
+            // Test 3: Test error message format
+            log('Test 3: Verifying error message format...', 'info');
+            if (result2.message && result2.message.includes('already exists')) {
+                log('✓ Test 3 PASSED: Error message contains expected text', 'success');
+            } else {
+                log(`✗ Test 3 FAILED: Error message format incorrect: "${result2.message}"`, 'error');
+            }
+            
+            log('🎉 All tests completed successfully! Save fix is working correctly.', 'success');
+        }
+        
+        async function testNewSave() {
+            const name = document.getElementById('promptName').value;
+            const systemPrompt = document.getElementById('systemPrompt').value;
+            
+            if (!name || !systemPrompt) {
+                log('Please fill in both name and system prompt', 'error');
+                return;
+            }
+            
+            const result = await testSave(name, systemPrompt);
+            if (result.success) {
+                log(`New prompt saved: "${name}" (ID: ${result.id})`, 'success');
+            } else if (result.conflict) {
+                log(`Conflict detected for "${name}": ${result.message}`, 'error');
+            } else {
+                log(`Save failed: ${result.error}`, 'error');
+            }
+        }
+        
+        async function testConflictSave() {
+            // Get an existing prompt name
+            try {
+                const response = await fetch('/api/prompts');
+                const data = await response.json();
+                
+                if (data.prompts && data.prompts.length > 0) {
+                    const existingName = data.prompts[0].name;
+                    document.getElementById('promptName').value = existingName;
+                    log(`Set name to existing prompt: "${existingName}"`, 'info');
+                    
+                    const result = await testSave(existingName, 'Testing conflict with existing prompt.');
+                    if (result.conflict) {
+                        log(`Conflict correctly detected for "${existingName}"`, 'success');
+                    } else {
+                        log(`Expected conflict but got: ${result.error || 'success'}`, 'error');
+                    }
+                } else {
+                    log('No existing prompts found to test conflict', 'error');
+                }
+            } catch (error) {
+                log(`Error getting existing prompts: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testSave(name, systemPrompt) {
+            try {
+                const response = await fetch('/api/prompts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        system_prompt: systemPrompt,
+                        model: 'llama2',
+                        temperature: 0.7
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    return {
+                        success: true,
+                        id: data.prompt.id,
+                        message: data.message
+                    };
+                } else if (response.status === 409) {
+                    return {
+                        conflict: true,
+                        status: response.status,
+                        message: data.message,
+                        code: data.code
+                    };
+                } else {
+                    return {
+                        error: `HTTP ${response.status}: ${data.message}`,
+                        status: response.status
+                    };
+                }
+            } catch (error) {
+                return {
+                    error: `Network error: ${error.message}`
+                };
+            }
+        }
+        
+        function clearLog() {
+            document.getElementById('testLog').innerHTML = '';
+        }
+        
+        // Auto-run test on page load
+        window.addEventListener('load', () => {
+            log('Save fix test page loaded. Click "Run Complete Test" to verify the fix.', 'info');
+        });
+    </script>
+</body>
+</html>

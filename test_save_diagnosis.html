@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Save Diagnosis Test</title>
+</head>
+<body>
+    <h1>Save Diagnosis Test</h1>
+    <div>
+        <label>Name: <input type="text" id="prompt-name" value="Diagnosis Test Prompt"></label><br><br>
+        <label>Description: <input type="text" id="prompt-description" value="Test description"></label><br><br>
+        <label>System Prompt: <textarea id="system-prompt" rows="4" cols="50">You are a diagnosis test assistant.</textarea></label><br><br>
+        <label>Model: <input type="text" id="model" value="llama2"></label><br><br>
+        <label>Temperature: <input type="number" id="temperature" value="0.7" step="0.1" min="0" max="2"></label><br><br>
+        <button id="test-save-detailed">Test Save with Detailed Logging</button>
+    </div>
+    <div id="results" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; max-height: 400px; overflow-y: auto;"></div>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message) {
+            console.log(message);
+            results.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearLog() {
+            results.innerHTML = '';
+        }
+        
+        document.getElementById('test-save-detailed').addEventListener('click', async () => {
+            clearLog();
+            log('🔍 Starting detailed save diagnosis...');
+            
+            try {
+                // Collect form data
+                const promptData = {
+                    name: document.getElementById('prompt-name').value,
+                    description: document.getElementById('prompt-description').value,
+                    system_prompt: document.getElementById('system-prompt').value,
+                    model: document.getElementById('model').value,
+                    temperature: parseFloat(document.getElementById('temperature').value)
+                };
+                
+                log('📋 Collected form data:');
+                log(JSON.stringify(promptData, null, 2));
+                
+                // Validate data
+                log('🔍 Validating data...');
+                const validation = {
+                    name: promptData.name ? '✅ Valid' : '❌ Empty',
+                    description: promptData.description !== undefined ? '✅ Valid' : '❌ Undefined',
+                    system_prompt: promptData.system_prompt ? '✅ Valid' : '❌ Empty',
+                    model: promptData.model ? '✅ Valid' : '❌ Empty',
+                    temperature: (typeof promptData.temperature === 'number' && !isNaN(promptData.temperature)) ? '✅ Valid' : '❌ Invalid number'
+                };
+                
+                Object.entries(validation).forEach(([key, status]) => {
+                    log(`  ${key}: ${status}`);
+                });
+                
+                // Test JSON serialization
+                log('🔍 Testing JSON serialization...');
+                const jsonString = JSON.stringify(promptData);
+                log(`JSON length: ${jsonString.length} characters`);
+                log(`JSON preview: ${jsonString.substring(0, 100)}...`);
+                
+                // Test API call with detailed error handling
+                log('🌐 Making API call...');
+                const response = await fetch('/api/prompts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: jsonString
+                });
+                
+                log(`📡 Response status: ${response.status} ${response.statusText}`);
+                log(`📡 Response headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2)}`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    log(`❌ Error response body: ${errorText}`);
+                    
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        log(`❌ Parsed error: ${JSON.stringify(errorJson, null, 2)}`);
+                    } catch (e) {
+                        log(`❌ Could not parse error as JSON: ${e.message}`);
+                    }
+                    return;
+                }
+                
+                const responseData = await response.json();
+                log(`✅ Success response: ${JSON.stringify(responseData, null, 2)}`);
+                
+                log('🎉 Save diagnosis completed successfully!');
+                
+            } catch (error) {
+                log(`❌ Exception during diagnosis: ${error.message}`);
+                log(`❌ Error stack: ${error.stack}`);
+                console.error('Full error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

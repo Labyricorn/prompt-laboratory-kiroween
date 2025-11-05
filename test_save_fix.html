@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Save Fix</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        button { padding: 10px 15px; margin: 5px; }
+        input, textarea { width: 300px; padding: 5px; margin: 5px 0; }
+        .result { margin: 10px 0; padding: 10px; background: #f0f0f0; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+    </style>
+</head>
+<body>
+    <h1>Test Save Fix</h1>
+    
+    <div class="test-section">
+        <h2>Test Prompt Save with Conflict Handling</h2>
+        <div>
+            <label>Prompt Name:</label><br>
+            <input type="text" id="promptName" value="Test Prompt" placeholder="Enter prompt name">
+        </div>
+        <div>
+            <label>System Prompt:</label><br>
+            <textarea id="systemPrompt" rows="4" placeholder="Enter system prompt">You are a helpful assistant for testing.</textarea>
+        </div>
+        <button onclick="testSave()">Test Save</button>
+        <button onclick="testConflict()">Test Conflict (use existing name)</button>
+        <button onclick="clearResults()">Clear Results</button>
+        <div id="results" class="result"></div>
+    </div>
+
+    <script>
+        async function testSave() {
+            const name = document.getElementById('promptName').value;
+            const systemPrompt = document.getElementById('systemPrompt').value;
+            
+            if (!name || !systemPrompt) {
+                showResult('Please fill in both name and system prompt', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/prompts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        system_prompt: systemPrompt,
+                        model: 'llama2',
+                        temperature: 0.7
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult(`Success! Prompt saved with ID: ${data.prompt.id}`, 'success');
+                } else {
+                    if (response.status === 409) {
+                        showResult(`Conflict detected: ${data.message}. Status: ${response.status}`, 'error');
+                        
+                        // Simulate the frontend conflict handling
+                        const shouldOverwrite = confirm(`A prompt named "${name}" already exists. Do you want to overwrite it?`);
+                        if (shouldOverwrite) {
+                            showResult('User chose to overwrite (would call handleNameConflict)', 'success');
+                        } else {
+                            showResult('User chose not to overwrite (would show name dialog again)', 'success');
+                        }
+                    } else {
+                        showResult(`Error: ${data.message} (Status: ${response.status})`, 'error');
+                    }
+                }
+            } catch (error) {
+                showResult(`Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testConflict() {
+            // First, get existing prompts to find a name that exists
+            try {
+                const response = await fetch('/api/prompts');
+                const data = await response.json();
+                
+                if (data.prompts && data.prompts.length > 0) {
+                    const existingName = data.prompts[0].name;
+                    document.getElementById('promptName').value = existingName;
+                    showResult(`Set name to existing prompt: "${existingName}". Now click "Test Save" to see conflict handling.`, 'success');
+                } else {
+                    showResult('No existing prompts found to test conflict', 'error');
+                }
+            } catch (error) {
+                showResult(`Error getting prompts: ${error.message}`, 'error');
+            }
+        }
+        
+        function showResult(message, type) {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
