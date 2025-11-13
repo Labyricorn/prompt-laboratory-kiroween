@@ -148,8 +148,7 @@
     - Generate JSON/YAML format for all prompts
     - Add metadata and timestamp information to exports
     - _Requirements: 10.1, 10.4_
-
-  - [x] 6.2 Add library import capabilities
+- [x] 6.2 Add library import capabilities
 
 
     - Build POST /api/import-library endpoint
