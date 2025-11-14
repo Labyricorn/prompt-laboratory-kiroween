@@ -15,6 +15,7 @@ class AppConfig:
     ollama_endpoint: str = "http://localhost:11434"
     default_model: str = "llama2"
     default_temperature: float = 0.7
+    refine_timeout: int = 120  # Timeout for prompt refinement in seconds (default: 2 minutes)
     database_path: str = "promptlab.db"
     flask_host: str = "127.0.0.1"
     flask_port: int = 5000
@@ -41,6 +42,12 @@ class AppConfig:
             errors['default_temperature'] = 'Default temperature must be a number'
         elif not (0.0 <= self.default_temperature <= 2.0):
             errors['default_temperature'] = 'Default temperature must be between 0.0 and 2.0'
+        
+        # Validate refine_timeout
+        if not isinstance(self.refine_timeout, int):
+            errors['refine_timeout'] = 'Refine timeout must be an integer'
+        elif not (30 <= self.refine_timeout <= 300):
+            errors['refine_timeout'] = 'Refine timeout must be between 30 and 300 seconds'
         
         # Validate database_path
         if not self.database_path or not isinstance(self.database_path, str):
@@ -96,6 +103,12 @@ class AppConfig:
                 config_data['default_temperature'] = float(data['default_temperature'])
             except (ValueError, TypeError):
                 config_data['default_temperature'] = cls.default_temperature
+        
+        if 'refine_timeout' in data:
+            try:
+                config_data['refine_timeout'] = int(data['refine_timeout'])
+            except (ValueError, TypeError):
+                config_data['refine_timeout'] = cls.refine_timeout
         
         if 'database_path' in data:
             config_data['database_path'] = str(data['database_path'])
@@ -153,6 +166,7 @@ class AppConfig:
             ollama_endpoint=os.getenv('OLLAMA_ENDPOINT', cls.ollama_endpoint),
             default_model=os.getenv('DEFAULT_MODEL', cls.default_model),
             default_temperature=float(os.getenv('DEFAULT_TEMPERATURE', str(cls.default_temperature))),
+            refine_timeout=int(os.getenv('REFINE_TIMEOUT', str(cls.refine_timeout))),
             database_path=os.getenv('DATABASE_PATH', cls.database_path),
             flask_host=os.getenv('FLASK_HOST', cls.flask_host),
             flask_port=int(os.getenv('FLASK_PORT', str(cls.flask_port))),

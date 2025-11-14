@@ -60,6 +60,15 @@ export class SettingsModal {
                             </div>
                             
                             <div class="form-group">
+                                <label for="refine-timeout">
+                                    Prompt Refinement Timeout: <span id="timeout-display">120</span>s
+                                </label>
+                                <input type="range" id="refine-timeout" name="refine_timeout" 
+                                       min="30" max="300" step="10" value="120">
+                                <div class="form-help">Timeout for prompt generation (30s to 5min)</div>
+                            </div>
+                            
+                            <div class="form-group">
                                 <label class="toggle-label">
                                     <span class="toggle-text">Dark Mode</span>
                                     <div class="toggle-container">
@@ -399,6 +408,15 @@ export class SettingsModal {
             });
         }
         
+        // Timeout slider
+        const timeoutSlider = document.getElementById('refine-timeout');
+        const timeoutDisplay = document.getElementById('timeout-display');
+        if (timeoutSlider && timeoutDisplay) {
+            timeoutSlider.addEventListener('input', (e) => {
+                timeoutDisplay.textContent = e.target.value;
+            });
+        }
+        
         // Dark mode toggle
         const darkModeToggle = document.getElementById('dark-mode-toggle');
         if (darkModeToggle) {
@@ -486,6 +504,14 @@ export class SettingsModal {
             const temp = config.default_temperature || 0.7;
             tempSlider.value = temp;
             tempDisplay.textContent = temp;
+        }
+        
+        const timeoutSlider = document.getElementById('refine-timeout');
+        const timeoutDisplay = document.getElementById('timeout-display');
+        if (timeoutSlider && timeoutDisplay) {
+            const timeout = config.refine_timeout || 120;
+            timeoutSlider.value = timeout;
+            timeoutDisplay.textContent = timeout;
         }
         
         // Load dark mode setting
@@ -640,6 +666,8 @@ export class SettingsModal {
             for (const [key, value] of formData.entries()) {
                 if (key === 'default_temperature') {
                     updates[key] = parseFloat(value);
+                } else if (key === 'refine_timeout') {
+                    updates[key] = parseInt(value);
                 } else if (value.trim()) {  // Only include non-empty values
                     updates[key] = value.trim();
                 }
@@ -664,6 +692,11 @@ export class SettingsModal {
             // Validate temperature range
             if (updates.default_temperature < 0 || updates.default_temperature > 2) {
                 throw new Error('Temperature must be between 0 and 2');
+            }
+            
+            // Validate timeout range
+            if (updates.refine_timeout && (updates.refine_timeout < 30 || updates.refine_timeout > 300)) {
+                throw new Error('Timeout must be between 30 and 300 seconds');
             }
             
             // Update configuration

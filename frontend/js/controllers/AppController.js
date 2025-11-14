@@ -78,6 +78,30 @@ export class AppController {
                 this.ollamaStatus = { connected: false, endpoint: this.config.ollama_endpoint };
             }
             
+            // Test Ollama connection during initialization
+            console.log('Testing Ollama connection during initialization...');
+            try {
+                const connectionResult = await this.configService.testOllamaConnection();
+                this.ollamaStatus = {
+                    connected: connectionResult.connected,
+                    endpoint: connectionResult.endpoint,
+                    models_available: connectionResult.models_available
+                };
+                
+                if (connectionResult.connected) {
+                    console.log(`✓ Ollama connected: ${connectionResult.models_available} models available`);
+                } else {
+                    console.warn('✗ Ollama not connected:', connectionResult.error);
+                }
+            } catch (error) {
+                console.warn('Failed to test Ollama connection:', error);
+                this.ollamaStatus = { 
+                    connected: false, 
+                    endpoint: this.config.ollama_endpoint,
+                    error: error.message 
+                };
+            }
+            
             // Display connection status
             this.displayConnectionStatus();
             
@@ -230,12 +254,26 @@ export class AppController {
             // Load available models for test chamber (only if Ollama is connected)
             if (this.ollamaStatus && this.ollamaStatus.connected) {
                 await this.testChamberPanel.loadModels();
+                
+                // Show success message with model count
+                const modelCount = this.ollamaStatus.models_available || 0;
+                if (modelCount > 0) {
+                    this.eventBus.emit('toast:show', 
+                        `Connected to Ollama with ${modelCount} model${modelCount !== 1 ? 's' : ''} available`, 
+                        'success',
+                        { duration: 3000 }
+                    );
+                }
             } else {
                 // Show guidance for setting up Ollama
+                const errorMsg = this.ollamaStatus?.error 
+                    ? `Ollama connection failed: ${this.ollamaStatus.error}` 
+                    : 'Ollama not connected';
+                    
                 this.eventBus.emit('toast:show', 
-                    'Ollama not connected. Click the connection status or settings to configure.', 
-                    'info',
-                    { duration: 5000 }
+                    `${errorMsg}. Click the connection status or settings to configure.`, 
+                    'warning',
+                    { duration: 6000 }
                 );
             }
             

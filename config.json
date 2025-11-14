@@ -1,0 +1,10 @@
+{
+  "ollama_endpoint": "http://localhost:11434",
+  "default_model": "qwen2:7b",
+  "default_temperature": 0.7,
+  "refine_timeout": 120,
+  "database_path": "promptlab.db",
+  "flask_host": "127.0.0.1",
+  "flask_port": 5000,
+  "flask_debug": true
+}

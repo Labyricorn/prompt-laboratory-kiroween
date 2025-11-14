@@ -61,6 +61,7 @@ export class ConfigService {
             ollama_endpoint: 'http://localhost:11434',
             default_model: 'llama2',
             default_temperature: 0.7,
+            refine_timeout: 120,
             max_tokens: 2048,
             timeout: 30000,
             auto_save: true,

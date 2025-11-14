@@ -6,6 +6,7 @@ Endpoints for AI model interaction, prompt refinement, and testing
 from flask import Blueprint, request, jsonify
 import yaml
 from backend.services.ollama_service import ollama_service, OllamaConnectionError, OllamaTimeoutError
+from backend.config import config
 
 # Create Blueprint for Ollama API endpoints
 ollama_bp = Blueprint('ollama', __name__, url_prefix='/api')
@@ -81,23 +82,33 @@ def refine_prompt():
         
         target_model = data.get('target_model', '').strip() or None
         
+        # Get timeout from config (in seconds), with fallback to default
+        timeout = getattr(config, 'refine_timeout', 120)
+        
+        # Create Ollama service instance with configured timeout
+        from backend.services.ollama_service import OllamaService
+        ollama = OllamaService(timeout=timeout)
+        
         # Call Ollama service to refine the prompt
-        refined_prompt = ollama_service.refine_prompt(objective, target_model)
+        refined_prompt = ollama.refine_prompt(objective, target_model)
         
         return jsonify({
             'success': True,
             'message': 'Prompt refined successfully',
             'objective': objective,
             'refined_prompt': refined_prompt,
-            'model_used': target_model or ollama_service.endpoint
+            'model_used': target_model or config.default_model
         })
         
     except (OllamaConnectionError, OllamaTimeoutError) as e:
         return handle_ollama_error(e)
     except Exception as e:
+        import traceback
+        print(f"Error in refine_prompt: {str(e)}")
+        print(traceback.format_exc())
         return jsonify({
             'error': True,
-            'message': 'Failed to refine prompt',
+            'message': f'Failed to refine prompt: {str(e)}',
             'code': 'REFINEMENT_ERROR'
         }), 500
 

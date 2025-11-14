@@ -708,7 +708,28 @@ body {
     border-top: 2px solid currentColor;
     border-radius: 50%;
     animation: spin 1s linear infinite;
-    margin-left: 0.5rem;
+}
+
+/* Button loading state */
+.btn {
+    position: relative;
+}
+
+.btn.loading {
+    color: transparent;
+}
+
+.btn.loading .btn-text {
+    visibility: hidden;
+}
+
+.btn.loading .loading-spinner {
+    display: inline-block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -8px;  /* Half of spinner height (16px / 2) */
+    margin-left: -8px; /* Half of spinner width (16px / 2) */
 }
 
 .btn:disabled {

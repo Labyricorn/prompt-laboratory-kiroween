@@ -151,6 +151,8 @@ def setup_signal_handlers():
         global shutdown_requested
         logger.info(f"\n🛑 Received signal {signum}, initiating graceful shutdown...")
         shutdown_requested = True
+        # Exit immediately on Ctrl+C
+        sys.exit(0)
     
     # Handle common shutdown signals
     signal.signal(signal.SIGINT, signal_handler)  # Ctrl+C
