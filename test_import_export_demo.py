@@ -12,7 +12,7 @@ BASE_URL = "http://127.0.0.1:5000/api"
 
 def test_import_export():
     """Test the import/export functionality"""
-    print("Testing PromptLab Import/Export Functionality")
+    print("Testing Prompt-Laboratory Import/Export Functionality")
     print("=" * 50)
     
     # Create a test prompt
@@ -35,7 +35,7 @@ def test_import_export():
             print(f"✗ Failed to create prompt: {response.text}")
             return
     except requests.exceptions.ConnectionError:
-        print("✗ Could not connect to PromptLab server. Make sure it's running on port 5000.")
+        print("✗ Could not connect to Prompt-Laboratory server. Make sure it's running on port 5000.")
         return
     
     # Export library

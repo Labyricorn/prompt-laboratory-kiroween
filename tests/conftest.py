@@ -1,5 +1,5 @@
 """
-Test configuration and fixtures for PromptLab tests
+Test configuration and fixtures for Prompt-Laboratory tests
 """
 
 import pytest

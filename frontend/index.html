@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PromptLab</title>
+    <title>Prompt-Laboratory</title>
     <link rel="stylesheet" href="css/styles.css">
     <!-- Monaco Editor -->
     <script src="https://unpkg.com/monaco-editor@0.44.0/min/vs/loader.js"></script>
@@ -11,7 +11,7 @@
 <body>
     <div id="app">
         <header class="app-header">
-            <h1>PromptLab</h1>
+            <h1>Prompt-Laboratory</h1>
             <button id="settings-btn" class="settings-button" aria-label="Open Settings">
                 <span class="settings-icon">⚙️</span>
             </button>
@@ -49,6 +49,9 @@
                 <div class="panel-header">
                     <h2>Workbench</h2>
                     <div class="workbench-actions">
+                        <button id="layout-toggle-workbench" class="layout-toggle-btn" aria-label="Expand Workbench" title="Expand Workbench">
+                            <span class="toggle-icon">⇄</span>
+                        </button>
                         <button id="save-btn" class="btn btn-primary" aria-label="Save Prompt">Save</button>
                         <button id="save-as-btn" class="btn btn-secondary" aria-label="Save As New Prompt">Save As</button>
                     </div>
@@ -56,7 +59,7 @@
                 
                 <div class="workbench-content">
                     <div class="objective-section">
-                        <label for="objective-input" class="section-label">Objective</label>
+                        <label for="objective-input" class="section-label">Prompt Objective</label>
                         <textarea 
                             id="objective-input" 
                             class="objective-input" 
@@ -64,7 +67,7 @@
                             aria-describedby="objective-help"
                         ></textarea>
                         <div id="objective-help" class="help-text">
-                            Enter a simple description of your prompt's goal. Use the Refine button to generate a detailed system prompt.
+                            Enter a simple description of your prompt's goal. Use the Refine button to generate a detailed system prompt. Use the settings gear (⚙️) in the upper right to select models and set default temperature.
                         </div>
                         <button id="refine-btn" class="btn btn-accent" aria-label="Refine objective into system prompt">
                             <span class="btn-text">Refine</span>
@@ -92,15 +95,20 @@
             <section class="test-chamber-panel" role="region" aria-label="Prompt Test Chamber">
                 <div class="panel-header">
                     <h2>Test Chamber</h2>
-                    <button id="run-test-btn" class="btn btn-accent" aria-label="Run prompt test">
-                        <span class="btn-text">Run Test</span>
-                        <span class="loading-spinner" aria-hidden="true"></span>
-                    </button>
+                    <div class="workbench-actions">
+                        <button id="layout-toggle-test" class="layout-toggle-btn" aria-label="Expand Test Chamber" title="Expand Test Chamber">
+                            <span class="toggle-icon">⇄</span>
+                        </button>
+                        <button id="run-test-btn" class="btn btn-accent" aria-label="Run prompt test">
+                            <span class="btn-text">Run Test</span>
+                            <span class="loading-spinner" aria-hidden="true"></span>
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="test-content">
                     <div class="test-input-section">
-                        <label for="test-message-input" class="section-label">Test Message</label>
+                        <label for="test-message-input" class="section-label">Test Chamber User Message</label>
                         <textarea 
                             id="test-message-input" 
                             class="test-input" 
@@ -113,44 +121,104 @@
                     </div>
                     
                     <div class="test-parameters">
-                        <div class="parameter-group">
-                            <label for="model-select" class="parameter-label">Model</label>
-                            <select id="model-select" class="parameter-select" aria-label="Select AI model">
-                                <option value="">Loading models...</option>
-                            </select>
+                        <div class="parameters-header">
+                            <label class="section-label">Test Chamber Parameters</label>
+                            <button id="toggle-parameters-btn" class="collapse-toggle-btn" aria-label="Collapse parameters" aria-expanded="true">
+                                <span class="collapse-icon">▼</span>
+                            </button>
                         </div>
-                        
-                        <div class="parameter-group">
-                            <label for="temperature-slider" class="parameter-label">
-                                Temperature: <span id="temperature-value">0.7</span>
-                            </label>
-                            <input 
-                                type="range" 
-                                id="temperature-slider" 
-                                class="parameter-slider" 
-                                min="0" 
-                                max="2" 
-                                step="0.1" 
-                                value="0.7"
-                                aria-describedby="temperature-help"
-                            >
-                            <div id="temperature-help" class="help-text">
-                                Controls randomness: 0 = deterministic, 2 = very creative
+                        <div id="parameters-content" class="parameters-content">
+                            <div class="parameter-group">
+                                <label for="model-select" class="parameter-label">Model</label>
+                                <select id="model-select" class="parameter-select" aria-label="Select AI model">
+                                    <option value="">Loading models...</option>
+                                </select>
+                            </div>
+                            
+                            <div class="parameter-group">
+                                <label for="temperature-slider" class="parameter-label">
+                                    Temperature: <span id="temperature-value">0.7</span>
+                                </label>
+                                <input 
+                                    type="range" 
+                                    id="temperature-slider" 
+                                    class="parameter-slider" 
+                                    min="0" 
+                                    max="2" 
+                                    step="0.1" 
+                                    value="0.7"
+                                    aria-describedby="temperature-help"
+                                >
+                                <div id="temperature-help" class="help-text">
+                                    Controls randomness: 0 = deterministic, 2 = very creative
+                                </div>
+                            </div>
+                            
+                            <div class="parameter-group">
+                                <label for="timeout-slider" class="parameter-label">
+                                    Timeout: <span id="timeout-value">30</span>s
+                                </label>
+                                <input 
+                                    type="range" 
+                                    id="timeout-slider" 
+                                    class="parameter-slider" 
+                                    min="30" 
+                                    max="300" 
+                                    step="10" 
+                                    value="30"
+                                    aria-describedby="timeout-help"
+                                >
+                                <div id="timeout-help" class="help-text">
+                                    Request timeout: 30s (fast) to 5min (complex tasks)
+                                </div>
+                            </div>
+                            
+                            <div class="parameter-group">
+                                <label class="parameter-checkbox-label kiroween-label">
+                                    <input 
+                                        type="checkbox" 
+                                        id="kiroween-checkbox" 
+                                        class="parameter-checkbox"
+                                        aria-describedby="kiroween-help"
+                                    >
+                                    <span>Kiroween effect</span>
+                                </label>
+                                <div id="kiroween-help" class="help-text">
+                                    Enable lightning flash and audio on successful test completion
+                                </div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="test-results">
-                        <div class="result-section">
-                            <label class="section-label">Response</label>
+                        <div class="result-section response-section" id="response-section">
+                            <div class="section-header">
+                                <label class="section-label">Response</label>
+                                <div class="response-actions">
+                                    <button id="copy-response-btn" class="btn btn-small btn-secondary" aria-label="Copy response to clipboard" title="Copy to clipboard" disabled>
+                                        <span class="copy-icon">📋</span>
+                                    </button>
+                                    <button id="save-response-btn" class="btn btn-small btn-secondary" aria-label="Save response to file" title="Save to file" disabled>
+                                        <span class="save-icon">💾</span>
+                                    </button>
+                                </div>
+                            </div>
                             <div id="test-response" class="response-output" aria-live="polite"></div>
                         </div>
                         
-                        <div class="result-section">
-                            <label class="section-label">YAML Configuration</label>
+                        <div class="resize-handle" id="results-resize-handle" title="Drag to resize">
+                            <div class="resize-handle-bar"></div>
+                        </div>
+                        
+                        <div class="result-section yaml-section" id="yaml-section">
+                            <div class="section-header">
+                                <label class="section-label">LLM Request YAML Summary</label>
+                                <button id="copy-yaml-btn" class="btn btn-small btn-secondary" aria-label="Copy YAML configuration" title="Copy to clipboard" disabled>
+                                    <span class="copy-icon">📋</span>
+                                </button>
+                            </div>
                             <div class="yaml-container">
                                 <pre id="yaml-output" class="yaml-output" aria-live="polite"></pre>
-                                <button id="copy-yaml-btn" class="btn btn-small" aria-label="Copy YAML configuration">Copy</button>
                             </div>
                         </div>
                     </div>

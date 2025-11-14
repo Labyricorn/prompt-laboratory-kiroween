@@ -16,7 +16,9 @@ export class ConfigService {
     async getConfig(forceRefresh = false) {
         if (!this.config || forceRefresh) {
             try {
-                this.config = await this.apiClient.getConfig();
+                const response = await this.apiClient.getConfig();
+                // Extract the config object from the response
+                this.config = response.config || response;
             } catch (error) {
                 ErrorHandler.handleError(error, 'Failed to load configuration');
                 // Return default config on error
@@ -34,7 +36,9 @@ export class ConfigService {
      */
     async updateConfig(updates) {
         try {
-            const updatedConfig = await this.apiClient.updateConfig(updates);
+            const response = await this.apiClient.updateConfig(updates);
+            // Extract the config object from the response
+            const updatedConfig = response.config || response;
             this.config = updatedConfig;
             
             // Notify listeners of config change

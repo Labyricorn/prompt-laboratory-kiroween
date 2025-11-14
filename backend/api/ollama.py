@@ -111,6 +111,7 @@ def run_test():
         user_input (str): User message to send with the system prompt
         model (str, optional): Model to use for testing
         temperature (float, optional): Temperature setting (0.0-2.0)
+        timeout (int, optional): Request timeout in seconds (30-300)
     
     Returns:
         JSON response with AI response and YAML configuration
@@ -162,6 +163,17 @@ def run_test():
             except (ValueError, TypeError):
                 errors['temperature'] = 'Temperature must be a valid number'
         
+        timeout = data.get('timeout')
+        if timeout is not None:
+            try:
+                timeout = int(timeout)
+                if timeout < 30 or timeout > 300:
+                    errors['timeout'] = 'Timeout must be between 30 and 300 seconds'
+            except (ValueError, TypeError):
+                errors['timeout'] = 'Timeout must be a valid number'
+        else:
+            timeout = 30  # Default timeout
+        
         if errors:
             return jsonify({
                 'error': True,
@@ -170,8 +182,8 @@ def run_test():
                 'details': errors
             }), 400
         
-        # Call Ollama service to test the prompt
-        test_result = ollama_service.test_prompt(system_prompt, user_input, model, temperature)
+        # Call Ollama service to test the prompt with custom timeout
+        test_result = ollama_service.test_prompt(system_prompt, user_input, model, temperature, timeout)
         
         # Generate YAML configuration
         yaml_config = {

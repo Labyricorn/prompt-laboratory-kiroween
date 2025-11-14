@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PromptLab Startup Script
+Prompt-Laboratory Startup Script
 Single-command launch for the complete application with comprehensive initialization,
 status display, logging, and graceful shutdown handling.
 """
@@ -34,7 +34,7 @@ def setup_logging():
 def print_banner():
     """Display application banner with version info"""
     print("=" * 60)
-    print("🧪 PromptLab - Prompt Engineering Environment")
+    print("🧪 Prompt-Laboratory - Prompt Engineering Environment")
     print("=" * 60)
     print(f"Python Version: {sys.version.split()[0]}")
     print(f"Platform: {sys.platform}")
@@ -136,7 +136,7 @@ def check_ollama_connection():
             return False
     except requests.exceptions.RequestException as e:
         logger.warning(f"⚠ Ollama connection failed: {e}")
-        logger.warning("PromptLab will start but AI features may not work")
+        logger.warning("Prompt-Laboratory will start but AI features may not work")
         logger.warning("Make sure Ollama is running: ollama serve")
         return False
     except Exception as e:
@@ -233,7 +233,7 @@ def main():
             sys.path.insert(0, backend_path)
         
         # Import and create Flask app
-        logger.info("🚀 Starting PromptLab application...")
+        logger.info("🚀 Starting Prompt-Laboratory application...")
         from backend.app import create_app
         from backend.config import config
         
@@ -247,7 +247,7 @@ def main():
         
         # Display startup information
         logger.info("=" * 50)
-        logger.info("🎯 PromptLab Server Starting")
+        logger.info("🎯 Prompt-Laboratory Server Starting")
         logger.info(f"📍 URL: {url}")
         logger.info(f"🏠 Host: {config.flask_host}")
         logger.info(f"🔌 Port: {config.flask_port}")
@@ -280,13 +280,13 @@ def main():
             logger.error(f"❌ Network error: {e}")
         sys.exit(1)
     except Exception as e:
-        logger.error(f"❌ Unexpected error starting PromptLab: {e}")
+        logger.error(f"❌ Unexpected error starting Prompt-Laboratory: {e}")
         logger.exception("Full error details:")
         sys.exit(1)
     finally:
         # Graceful shutdown
         logger.info("🔄 Performing cleanup...")
-        logger.info("👋 PromptLab shutdown complete")
+        logger.info("👋 Prompt-Laboratory shutdown complete")
 
 if __name__ == "__main__":
     main()

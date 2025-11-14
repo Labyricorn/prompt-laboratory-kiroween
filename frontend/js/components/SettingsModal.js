@@ -703,14 +703,14 @@ export class SettingsModal {
     }
     
     getDarkModeSetting() {
-        // Check localStorage first, then system preference
+        // Check localStorage first, then default to dark mode
         const saved = localStorage.getItem('darkMode');
         if (saved !== null) {
             return saved === 'true';
         }
         
-        // Default to system preference
-        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        // Default to dark mode on first load
+        return true;
     }
     
     handleDarkModeToggle(isDarkMode) {

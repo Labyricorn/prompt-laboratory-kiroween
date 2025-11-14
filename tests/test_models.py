@@ -1,5 +1,5 @@
 """
-Unit tests for PromptLab data models
+Unit tests for Prompt-Laboratory data models
 Tests for Prompt model validation, serialization, and database operations
 """
 

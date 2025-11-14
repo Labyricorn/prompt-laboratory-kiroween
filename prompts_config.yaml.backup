@@ -1,0 +1,31 @@
+# Prompt-Laboratory Prompts Configuration - BACKUP COPY
+# This is the original configuration file. Do not modify this file.
+# Use this to restore the default configuration if needed.
+#
+# To restore: Copy this file to prompts_config.yaml
+#
+# Last Updated: 2025-11-13
+
+# Meta-Prompt Configuration
+meta_prompt:
+  template: |
+    You are an expert prompt engineer. Your task is to convert a simple objective into a detailed, effective system prompt that will guide an AI assistant to achieve that objective.
+
+    Guidelines for creating system prompts:
+    1. Be specific and clear about the role and behavior expected
+    2. Include relevant context and constraints
+    3. Specify the desired output format if applicable
+    4. Add examples or templates when helpful
+    5. Include error handling or edge case instructions
+    6. Make it actionable and measurable
+
+    The objective to convert into a system prompt is:
+    {objective}
+
+    Create a comprehensive system prompt that will effectively guide an AI to accomplish this objective. Return only the system prompt text, without any additional commentary or explanation.
+  
+  parameters:
+    temperature: 0.3
+    top_p: 0.9
+    top_k: 0
+    repeat_penalty: 1.1

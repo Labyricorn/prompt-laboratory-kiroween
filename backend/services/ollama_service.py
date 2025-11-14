@@ -8,6 +8,7 @@ import time
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 from backend.config import config
+from backend.prompts_config import prompts_config
 
 
 class OllamaConnectionError(Exception):
@@ -241,33 +242,16 @@ class OllamaService:
         """
         model = target_model or config.default_model
         
-        # Meta-prompt for converting objectives to system prompts
-        meta_prompt = """You are an expert prompt engineer. Your task is to convert a simple objective into a detailed, effective system prompt that will guide an AI assistant to achieve that objective.
-
-Guidelines for creating system prompts:
-1. Be specific and clear about the role and behavior expected
-2. Include relevant context and constraints
-3. Specify the desired output format if applicable
-4. Add examples or templates when helpful
-5. Include error handling or edge case instructions
-6. Make it actionable and measurable
-
-The objective to convert into a system prompt is:
-{objective}
-
-Create a comprehensive system prompt that will effectively guide an AI to accomplish this objective. Return only the system prompt text, without any additional commentary or explanation."""
-
-        formatted_prompt = meta_prompt.format(objective=objective)
+        # Load meta-prompt configuration from file
+        meta_prompt_config = prompts_config.get_meta_prompt_config()
+        formatted_prompt = meta_prompt_config.format_prompt(objective)
         
         try:
             response = self._make_request('POST', 'api/generate', json={
                 'model': model,
                 'prompt': formatted_prompt,
                 'stream': False,
-                'options': {
-                    'temperature': 0.3,  # Lower temperature for more consistent refinement
-                    'top_p': 0.9
-                }
+                'options': meta_prompt_config.parameters.to_dict()
             })
             
             data = response.json()
@@ -283,63 +267,122 @@ Create a comprehensive system prompt that will effectively guide an AI to accomp
                 raise
             raise OllamaConnectionError(f"Failed to refine prompt: {str(e)}")
     
-    def test_prompt(self, system_prompt: str, user_input: str, model: str = None, temperature: float = None) -> Dict[str, Any]:
+    def test_prompt(self, system_prompt: str, user_input: str, model: str = None, temperature: float = None, timeout: int = None) -> Dict[str, Any]:
         """
         Test a system prompt with user input using specified model and parameters
         
+        This method is the core of the Test Chamber functionality. It combines:
+        1. System Prompt (from Workbench) - Defines the AI's role and behavior
+        2. User Message (from Test Chamber) - The test input to send to the AI
+        3. Parameters (from Test Chamber) - Model, temperature, and timeout settings
+        
         Args:
-            system_prompt: The system prompt to test
-            user_input: User message to send with the system prompt
-            model: Model to use for testing (defaults to config default)
-            temperature: Temperature setting (defaults to config default)
+            system_prompt: The system prompt from Workbench (defines AI behavior)
+            user_input: Test message from Test Chamber User Message field
+            model: Model from Test Chamber Parameters dropdown (defaults to config default)
+            temperature: Temperature from Test Chamber Parameters slider (defaults to config default)
+            timeout: Timeout from Test Chamber Parameters slider (defaults to instance timeout)
             
         Returns:
-            Dictionary containing response and metadata
+            Dictionary containing:
+                - response: AI-generated response text
+                - execution_time: How long the request took (seconds)
+                - model: Which model was used
+                - temperature: Temperature setting used
+                - timeout: Timeout setting used
+                - system_prompt: Echo of the system prompt used
+                - user_input: Echo of the user input used
             
         Raises:
             OllamaConnectionError: If unable to communicate with Ollama
             OllamaTimeoutError: If request times out
         """
+        # ============================================================================
+        # STEP 1: Apply Test Chamber Parameters (or use defaults)
+        # ============================================================================
+        # Use the model selected in Test Chamber Parameters dropdown, or fall back to config default
         model = model or config.default_model
+        
+        # Use the temperature from Test Chamber Parameters slider, or fall back to config default
         temperature = temperature if temperature is not None else config.default_temperature
         
-        # Combine system prompt and user input
+        # Use the timeout from Test Chamber Parameters slider, or fall back to instance default
+        request_timeout = timeout if timeout is not None else self.timeout
+        
+        # ============================================================================
+        # STEP 2: Combine System Prompt with User Message
+        # ============================================================================
+        # This is where the Workbench System Prompt and Test Chamber User Message are combined
+        # Format: [System Prompt]\n\nUser: [User Message]\n\nAssistant:
+        # 
+        # Example:
+        #   System Prompt: "You are a helpful coding assistant..."
+        #   User Message: "How do I write a for loop in Python?"
+        #   Combined: "You are a helpful coding assistant...\n\nUser: How do I write a for loop in Python?\n\nAssistant:"
+        #
+        # The "User:" and "Assistant:" labels help the AI understand the conversation structure
         full_prompt = f"{system_prompt}\n\nUser: {user_input}\n\nAssistant:"
         
+        # Record start time for execution time calculation
         start_time = time.time()
         
         try:
+            # ============================================================================
+            # STEP 3: Send Combined Prompt to Ollama with Parameters
+            # ============================================================================
+            # Make HTTP POST request to Ollama API with:
+            # - model: Selected from Test Chamber Parameters
+            # - prompt: Combined system prompt + user message
+            # - stream: False (wait for complete response)
+            # - options: Temperature and top_p settings
+            # - timeout: From Test Chamber Parameters slider
             response = self._make_request('POST', 'api/generate', json={
-                'model': model,
-                'prompt': full_prompt,
-                'stream': False,
+                'model': model,                    # From Test Chamber Parameters dropdown
+                'prompt': full_prompt,             # Combined: System Prompt + User Message
+                'stream': False,                   # Wait for complete response (not streaming)
                 'options': {
-                    'temperature': temperature,
-                    'top_p': 0.9
+                    'temperature': temperature,    # From Test Chamber Parameters slider
+                    'top_p': 0.9                  # Nucleus sampling (fixed at 0.9 for consistency)
                 }
-            })
+            }, timeout=request_timeout)            # From Test Chamber Parameters timeout slider
             
+            # Calculate how long the request took
             end_time = time.time()
             execution_time = end_time - start_time
             
+            # ============================================================================
+            # STEP 4: Extract and Validate AI Response
+            # ============================================================================
+            # Parse JSON response from Ollama
             data = response.json()
+            
+            # Extract the AI's response text and remove leading/trailing whitespace
             ai_response = data.get('response', '').strip()
             
+            # Validate that we got a response (empty responses indicate an error)
             if not ai_response:
                 raise OllamaConnectionError("Received empty response from Ollama during prompt testing")
             
+            # ============================================================================
+            # STEP 5: Return Response with Metadata
+            # ============================================================================
+            # Return the AI response along with all the parameters used
+            # This data is displayed in the Test Chamber Response and YAML sections
             return {
-                'response': ai_response,
-                'execution_time': round(execution_time, 2),
-                'model': model,
-                'temperature': temperature,
-                'system_prompt': system_prompt,
-                'user_input': user_input
+                'response': ai_response,                    # AI-generated response (shown in Response section)
+                'execution_time': round(execution_time, 2), # How long it took (shown in toast)
+                'model': model,                             # Model used (shown in YAML)
+                'temperature': temperature,                 # Temperature used (shown in YAML)
+                'timeout': request_timeout,                 # Timeout used (shown in YAML)
+                'system_prompt': system_prompt,             # System prompt used (shown in YAML)
+                'user_input': user_input                    # User message used (shown in YAML)
             }
             
         except Exception as e:
+            # Re-raise known exceptions as-is
             if isinstance(e, (OllamaConnectionError, OllamaTimeoutError)):
                 raise
+            # Wrap unknown exceptions in OllamaConnectionError
             raise OllamaConnectionError(f"Failed to test prompt: {str(e)}")
 
 

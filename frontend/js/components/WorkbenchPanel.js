@@ -179,6 +179,10 @@ export class WorkbenchPanel {
         
         if (this.objectiveInput) {
             this.objectiveInput.value = '';
+            // Focus on the objective input for immediate user interaction
+            setTimeout(() => {
+                this.objectiveInput.focus();
+            }, 100);
         }
         
         if (this.editor) {
@@ -336,6 +340,9 @@ export class WorkbenchPanel {
             
             this.eventBus.emit('library:refresh');
             
+            // Update Test Chamber with the saved prompt so it can be tested immediately
+            this.eventBus.emit('prompt:selected', savedPrompt);
+            
         } catch (error) {
             // Check for conflict errors (409 status or specific messages)
             if (error.status === 409 || 
@@ -359,6 +366,9 @@ export class WorkbenchPanel {
     }
     
     getPromptData() {
+        console.log('WorkbenchPanel.getPromptData() - config:', this.config);
+        console.log('WorkbenchPanel.getPromptData() - default_model:', this.config?.default_model);
+        
         return {
             system_prompt: this.editor?.getValue() || '',
             model: this.config?.default_model || 'llama2',
@@ -440,6 +450,9 @@ export class WorkbenchPanel {
         this.eventBus.emit('toast:show', `Prompt "${this.currentPrompt.name}" updated successfully!`, 'success');
         
         this.eventBus.emit('library:refresh');
+        
+        // Update Test Chamber with the updated prompt
+        this.eventBus.emit('prompt:selected', updatedPrompt);
     }
     
     async showNameDialog(defaultName = '') {
@@ -551,6 +564,9 @@ export class WorkbenchPanel {
                 this.eventBus.emit('toast:show', `Prompt "${name}" overwritten successfully!`, 'success');
                 
                 this.eventBus.emit('library:refresh');
+                
+                // Update Test Chamber with the overwritten prompt
+                this.eventBus.emit('prompt:selected', updatedPrompt);
             }
         } catch (error) {
             throw new Error(`Failed to overwrite prompt: ${error.message}`);

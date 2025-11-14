@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Integration Test Runner for PromptLab
+Integration Test Runner for Prompt-Laboratory
 Runs comprehensive end-to-end tests with proper setup and teardown
 """
 
@@ -20,7 +20,7 @@ if backend_path not in sys.path:
 def print_banner():
     """Print test runner banner"""
     print("=" * 60)
-    print("🧪 PromptLab Integration Test Runner")
+    print("🧪 Prompt-Laboratory Integration Test Runner")
     print("=" * 60)
 
 def check_dependencies():
@@ -255,7 +255,7 @@ def run_comprehensive_tests():
     print(f"Total: {passed}/{total} test suites passed")
     
     if passed == total:
-        print("🎉 All tests passed! PromptLab is ready for use.")
+        print("🎉 All tests passed! Prompt-Laboratory is ready for use.")
         return True
     else:
         print("⚠ Some tests failed. Please review the output above.")

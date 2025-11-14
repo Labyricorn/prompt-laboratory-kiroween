@@ -66,6 +66,19 @@ class AppConfig:
         """Convert configuration to dictionary"""
         return asdict(self)
     
+    def save_to_file(self, config_path: str) -> None:
+        """Save configuration to JSON file"""
+        config_file = Path(config_path)
+        
+        # Create directory if it doesn't exist
+        config_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        try:
+            with open(config_file, 'w', encoding='utf-8') as f:
+                json.dump(self.to_dict(), f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            raise ValueError(f"Failed to save configuration file: {e}")
+    
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'AppConfig':
         """Create configuration from dictionary with type conversion"""

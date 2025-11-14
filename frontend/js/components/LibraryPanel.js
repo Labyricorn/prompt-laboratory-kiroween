@@ -214,7 +214,15 @@ export class LibraryPanel {
         item.innerHTML = `
             <div class="prompt-item-content">
                 <div class="prompt-item-header">
-                    <h3 class="prompt-item-name">${this.escapeHtml(prompt.name)}</h3>
+                    <div class="prompt-item-title-wrapper">
+                        <h3 class="prompt-item-name">${this.escapeHtml(prompt.name)}</h3>
+                        <button class="btn-icon edit-prompt-btn" 
+                                aria-label="Edit prompt name and description"
+                                data-action="edit-prompt" data-prompt-id="${prompt.id}"
+                                title="Edit name and description">
+                            ✏️
+                        </button>
+                    </div>
                     <div class="prompt-item-actions">
                         <button class="btn btn-small btn-primary load-btn" 
                                 aria-label="Load prompt: ${this.escapeHtml(prompt.name)}"
@@ -269,6 +277,15 @@ export class LibraryPanel {
             });
         }
         
+        // Edit prompt button
+        const editPromptBtn = item.querySelector('[data-action="edit-prompt"]');
+        if (editPromptBtn) {
+            editPromptBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleEditPrompt(prompt);
+            });
+        }
+        
         // Click on item to load
         item.addEventListener('click', () => {
             this.handleLoadPrompt(prompt);
@@ -314,6 +331,147 @@ export class LibraryPanel {
         } catch (error) {
             ErrorHandler.handleError(error, 'Deleting prompt');
         }
+    }
+    
+    /**
+     * Handle editing a prompt's name and description
+     * @param {Object} prompt - Prompt to edit
+     */
+    async handleEditPrompt(prompt) {
+        const result = await this.showEditPromptDialog(prompt);
+        if (!result) return; // User cancelled
+        
+        try {
+            await this.apiClient.updatePrompt(prompt.id, {
+                name: result.name.trim(),
+                description: result.description.trim() || null
+            });
+            await this.refreshPrompts();
+            ToastManager.success('Prompt updated successfully');
+        } catch (error) {
+            // Check for duplicate name error
+            if (error.status === 409 || error.message.includes('already exists')) {
+                ToastManager.error('A prompt with this name already exists');
+            } else {
+                ErrorHandler.handleError(error, 'Updating prompt');
+            }
+        }
+    }
+    
+    /**
+     * Show edit prompt dialog
+     * @param {Object} prompt - Prompt to edit
+     * @returns {Promise<Object|null>} Object with name and description, or null if cancelled
+     */
+    async showEditPromptDialog(prompt) {
+        return new Promise((resolve) => {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.setAttribute('role', 'dialog');
+            modal.setAttribute('aria-modal', 'true');
+            modal.setAttribute('aria-labelledby', 'edit-prompt-title');
+            
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="edit-prompt-title">Edit Prompt</h3>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="name-input">Prompt Name:</label>
+                            <input type="text" 
+                                   id="name-input" 
+                                   class="name-input" 
+                                   value="${this.escapeHtml(prompt.name)}"
+                                   placeholder="Enter prompt name..."
+                                   maxlength="255"
+                                   required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description-input">Description (optional):</label>
+                            <textarea id="description-input" 
+                                      class="description-input" 
+                                      placeholder="Brief description of this prompt..."
+                                      rows="4"
+                                      maxlength="1000">${this.escapeHtml(prompt.description || '')}</textarea>
+                            <div class="form-help">Maximum 1000 characters</div>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary cancel-btn">Cancel</button>
+                        <button class="btn btn-primary save-btn">Save</button>
+                    </div>
+                </div>
+            `;
+            
+            const nameInput = modal.querySelector('#name-input');
+            const descriptionInput = modal.querySelector('#description-input');
+            const cancelBtn = modal.querySelector('.cancel-btn');
+            const saveBtn = modal.querySelector('.save-btn');
+            
+            const cleanup = () => {
+                if (modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
+            };
+            
+            cancelBtn.addEventListener('click', () => {
+                cleanup();
+                resolve(null);
+            });
+            
+            saveBtn.addEventListener('click', () => {
+                const name = nameInput.value.trim();
+                if (!name) {
+                    nameInput.focus();
+                    return;
+                }
+                
+                cleanup();
+                resolve({
+                    name,
+                    description: descriptionInput.value.trim()
+                });
+            });
+            
+            // Handle Enter key on name input
+            nameInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveBtn.click();
+                } else if (e.key === 'Escape') {
+                    cancelBtn.click();
+                }
+            });
+            
+            // Handle Ctrl/Cmd+Enter on description to save
+            descriptionInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    saveBtn.click();
+                } else if (e.key === 'Escape') {
+                    cancelBtn.click();
+                }
+            });
+            
+            // Close on overlay click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    cancelBtn.click();
+                }
+            });
+            
+            // Close on escape
+            modal.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    cancelBtn.click();
+                }
+            });
+            
+            document.body.appendChild(modal);
+            nameInput.focus();
+            nameInput.select();
+        });
     }
     
     /**

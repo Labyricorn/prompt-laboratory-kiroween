@@ -1,6 +1,6 @@
 /* PromptLab Styles */
 :root {
-    --primary-color: #007acc;
+    --primary-color: #FA7137;
     --secondary-color: #6c757d;
     --accent-color: #28a745;
     --danger-color: #dc3545;
@@ -26,7 +26,7 @@
 
 /* Dark mode variables */
 [data-theme="dark"] {
-    --primary-color: #4dabf7;
+    --primary-color: #FA7137;
     --secondary-color: #adb5bd;
     --accent-color: #51cf66;
     --danger-color: #ff6b6b;
@@ -154,6 +154,16 @@ body {
     grid-template-columns: 380px 1fr 525px;
     gap: 0;
     overflow: hidden;
+    transition: grid-template-columns 0.3s ease;
+}
+
+/* Layout Toggle Modes */
+.app-main.workbench-mode {
+    grid-template-columns: 380px 1fr 420px;
+}
+
+.app-main.test-chamber-mode {
+    grid-template-columns: 380px 420px 1fr;
 }
 
 /* Panel Base Styles */
@@ -163,12 +173,19 @@ body {
     display: flex;
     flex-direction: column;
     background: var(--bg-primary);
-    border-right: 1px solid var(--border-color);
     overflow: hidden;
+    position: relative;
 }
 
-.test-chamber-panel {
-    border-right: none;
+.library-panel::after,
+.workbench-panel::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--border-color);
 }
 
 .panel-header {
@@ -178,6 +195,8 @@ body {
     padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--border-color);
     background: var(--bg-secondary);
+    min-height: 60px;
+    box-sizing: border-box;
 }
 
 .panel-header h2 {
@@ -185,6 +204,36 @@ body {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--dark-color);
+}
+
+/* Layout Toggle Button */
+.layout-toggle-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 0.375rem 0.5rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.layout-toggle-btn:hover {
+    background-color: var(--light-color);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.layout-toggle-btn .toggle-icon {
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.layout-toggle-btn:hover .toggle-icon {
+    transform: scale(1.1);
 }
 
 /* Button Styles */
@@ -201,6 +250,12 @@ body {
     gap: 0.5rem;
     text-decoration: none;
     white-space: nowrap;
+    line-height: 1.5;
+    box-sizing: border-box;
+}
+
+.panel-header .btn {
+    height: 36px;
 }
 
 .btn:disabled {
@@ -214,7 +269,7 @@ body {
 }
 
 .btn-primary:hover:not(:disabled) {
-    background-color: #0056b3;
+    background-color: #D85A1F;
 }
 
 .btn-secondary {
@@ -257,17 +312,18 @@ body {
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
 }
-}
-
-.btn-small {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-}
 
 /* Library Panel */
 .library-actions {
     display: flex;
     gap: 0.5rem;
+    align-items: center;
+}
+
+.workbench-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
 }
 
 .search-container {
@@ -346,19 +402,19 @@ body {
 }
 
 .kiro-link {
-    color: var(--primary-color);
+    color: #9333EA;
     text-decoration: none;
     font-weight: 500;
     transition: var(--transition);
 }
 
 .kiro-link:hover {
-    color: var(--accent-color);
+    color: #A855F7;
     text-decoration: underline;
 }
 
 .kiro-link:focus {
-    outline: 2px solid var(--primary-color);
+    outline: 2px solid #9333EA;
     outline-offset: 2px;
     border-radius: 2px;
 }
@@ -445,9 +501,60 @@ body {
 }
 
 .test-parameters {
-    padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--border-color);
     background: var(--light-color);
+}
+
+.parameters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    user-select: none;
+    transition: var(--transition);
+}
+
+.parameters-header:hover {
+    background: var(--bg-secondary);
+}
+
+.parameters-content {
+    padding: 0 1.5rem 1rem 1.5rem;
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.parameters-content.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.collapse-toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: var(--transition);
+}
+
+.collapse-toggle-btn:hover {
+    color: var(--primary-color);
+}
+
+.collapse-icon {
+    font-size: 0.875rem;
+    transition: transform 0.3s ease;
+}
+
+.collapse-toggle-btn[aria-expanded="false"] .collapse-icon {
+    transform: rotate(-90deg);
 }
 
 .parameter-group {
@@ -488,16 +595,73 @@ body {
 }
 
 .result-section {
-    flex: 1;
     display: flex;
     flex-direction: column;
     padding: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
     overflow: hidden;
 }
 
-.result-section:last-child {
+.response-section {
+    flex: 2;
+    min-height: 200px;
     border-bottom: none;
+}
+
+.yaml-section {
+    flex: 1;
+    min-height: 150px;
+    border-bottom: none;
+}
+
+.resize-handle {
+    height: 8px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    cursor: ns-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    user-select: none;
+}
+
+.resize-handle:hover {
+    background: var(--bg-tertiary);
+}
+
+.resize-handle:active {
+    background: var(--primary-color);
+    opacity: 0.3;
+}
+
+.resize-handle-bar {
+    width: 40px;
+    height: 3px;
+    background: var(--border-color);
+    border-radius: 2px;
+    transition: var(--transition);
+}
+
+.resize-handle:hover .resize-handle-bar {
+    background: var(--primary-color);
+}
+
+.result-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.response-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.copy-icon,
+.save-icon {
+    font-size: 0.875rem;
 }
 
 .response-output {
@@ -636,8 +800,6 @@ body {
     justify-content: flex-end;
     margin-top: 2rem;
 }
-    100% { transform: rotate(360deg); }
-}
 
 .btn.loading .btn-text {
     opacity: 0.7;
@@ -726,11 +888,27 @@ body {
     .app-main {
         grid-template-columns: 340px 1fr 480px;
     }
+    
+    .app-main.workbench-mode {
+        grid-template-columns: 340px 1fr 400px;
+    }
+    
+    .app-main.test-chamber-mode {
+        grid-template-columns: 340px 400px 1fr;
+    }
 }
 
 @media (max-width: 992px) {
     .app-main {
         grid-template-columns: 300px 1fr 450px;
+    }
+    
+    .app-main.workbench-mode {
+        grid-template-columns: 300px 1fr 380px;
+    }
+    
+    .app-main.test-chamber-mode {
+        grid-template-columns: 300px 380px 1fr;
     }
     
     .panel-header {
@@ -883,6 +1061,12 @@ body {
     flex-shrink: 0;
 }
 
+.prompt-item-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .prompt-item-description {
     font-size: 0.875rem;
     color: var(--text-secondary);
@@ -893,6 +1077,37 @@ body {
 .prompt-item-description em {
     font-style: italic;
     opacity: 0.7;
+}
+
+.edit-prompt-btn {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    opacity: 0.4;
+    transition: var(--transition);
+    border-radius: var(--border-radius);
+}
+
+.edit-prompt-btn:hover {
+    opacity: 1;
+    background-color: var(--bg-tertiary);
+}
+
+.edit-prompt-btn:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    opacity: 1;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    transition: var(--transition);
 }
 
 .prompt-item-meta {
@@ -2121,5 +2336,200 @@ ditional Loading and Notification Styles */
     .batch-progress-fill,
     .import-export-progress-fill {
         transition: none;
+    }
+}
+/* K
+iroween Effect Styles */
+.kiroween-flash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #9333EA; /* Purple lightning */
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+}
+
+.kiroween-flash-overlay.active {
+    animation: lightningFlash 1s ease-out;
+}
+
+@keyframes lightningFlash {
+    0% { opacity: 0; }
+    10% { opacity: 0.9; }
+    15% { opacity: 0.3; }
+    25% { opacity: 0.95; }
+    30% { opacity: 0; }
+    40% { opacity: 0.8; }
+    45% { opacity: 0; }
+    100% { opacity: 0; }
+}
+
+/* Dark mode support */
+[data-theme="dark"] .kiroween-flash-overlay {
+    background: #A855F7; /* Lighter purple for dark mode */
+}
+
+/* Checkbox styling */
+.parameter-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.parameter-checkbox-label.kiroween-label {
+    color: #9333EA; /* Purple text for Kiroween label */
+    font-weight: 500;
+}
+
+[data-theme="dark"] .parameter-checkbox-label.kiroween-label {
+    color: #A855F7; /* Lighter purple for dark mode */
+}
+
+.parameter-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* Floating Ghost Animation */
+.kiroween-ghost {
+    position: fixed;
+    height: 60px;
+    width: auto;
+    pointer-events: none;
+    z-index: 10000;
+    opacity: 0;
+    top: 10px;
+}
+
+.kiroween-ghost.floating {
+    animation: ghostFloat 8s ease-in-out forwards;
+}
+
+.kiroween-ghost.facing-right {
+    transform: scaleX(-1);
+}
+
+.kiroween-ghost.facing-left {
+    transform: scaleX(1);
+}
+
+.kiroween-ghost.front-layer {
+    z-index: 10000;
+}
+
+.kiroween-ghost.back-layer {
+    z-index: 1;
+}
+
+/* Reduced motion support for Kiroween effect */
+@media (prefers-reduced-motion: reduce) {
+    .kiroween-flash-overlay.active {
+        animation: none;
+        opacity: 0.5;
+        transition: opacity 0.3s ease;
+    }
+    
+    .kiroween-ghost.floating {
+        animation: none;
+        opacity: 0;
+    }
+}
+
+/* ============================================
+   Kiroween Effect Styles
+   ============================================ */
+
+/* Lightning Flash Overlay */
+.kiroween-flash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #9333EA;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+}
+
+.kiroween-flash-overlay.active {
+    animation: lightningFlash 1s ease-out;
+}
+
+@keyframes lightningFlash {
+    0% { opacity: 0; }
+    10% { opacity: 0.9; }
+    15% { opacity: 0.3; }
+    25% { opacity: 0.95; }
+    30% { opacity: 0; }
+    40% { opacity: 0.8; }
+    45% { opacity: 0; }
+    100% { opacity: 0; }
+}
+
+[data-theme="dark"] .kiroween-flash-overlay {
+    background: #A855F7;
+}
+
+@keyframes ghostFloat {
+    /* 0-5s: Float rightward to gear (facing right) */
+    0% {
+        opacity: 1;
+        left: var(--start-x);
+        transform: translateY(0) scaleX(-1);
+    }
+    /* Floating motion during rightward journey */
+    3%, 9%, 15%, 21%, 27%, 33%, 39%, 45%, 51%, 57% {
+        transform: translateY(-3px) scaleX(-1);
+    }
+    6%, 12%, 18%, 24%, 30%, 36%, 42%, 48%, 54%, 60% {
+        transform: translateY(3px) scaleX(-1);
+    }
+    /* 5s (62.5%): Reach gear and flip to face left */
+    62.5% {
+        opacity: 1;
+        left: var(--gear-x);
+        transform: translateY(0) scaleX(1);
+    }
+    /* 5-7s: Float leftward to middle (facing left) */
+    /* Floating motion during leftward journey */
+    65%, 70%, 75%, 80%, 85% {
+        transform: translateY(-3px) scaleX(1);
+    }
+    67.5%, 72.5%, 77.5%, 82.5% {
+        transform: translateY(3px) scaleX(1);
+    }
+    /* 7s (87.5%): Reach middle and flip to face right */
+    87.5% {
+        opacity: 1;
+        left: var(--middle-x);
+        transform: translateY(0) scaleX(-1);
+    }
+    /* 7-8s: Fade out while facing right */
+    100% {
+        opacity: 0;
+        left: var(--middle-x);
+        transform: translateY(0) scaleX(-1);
+    }
+}
+
+/* Accessibility: Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .kiroween-ghost.floating {
+        animation: none;
+        opacity: 0;
+    }
+    
+    .kiroween-flash-overlay.active {
+        animation: none;
+        background: #9333EA;
+        opacity: 0.5;
+        transition: opacity 0.3s ease;
     }
 }

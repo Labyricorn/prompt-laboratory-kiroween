@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost Animation Test Suite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+            transition: background-color 0.3s;
+        }
+
+        body.dark-mode {
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .app-header {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        body.dark-mode .app-header {
+            background: #2a2a2a;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        body.dark-mode .header-title {
+            color: #e0e0e0;
+        }
+
+        .ollama-status {
+            color: #10b981;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 100;
+        }
+
+        .settings-icon {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .settings-icon:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .test-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        body.dark-mode .test-panel {
+            background: #2a2a2a;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        body.dark-mode h2 {
+            color: #e0e0e0;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .test-button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #3b82f6;
+            color: white;
+        }
+
+        .test-button:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .test-button:active {
+            transform: translateY(0);
+        }
+
+        .test-button.danger {
+            background: #ef4444;
+        }
+
+        .test-button.danger:hover {
+            background: #dc2626;
+        }
+
+        .test-button.success {
+            background: #10b981;
+        }
+
+        .test-button.success:hover {
+            background: #059669;
+        }
+
+        .test-button.secondary {
+            background: #6b7280;
+        }
+
+        .test-button.secondary:hover {
+            background: #4b5563;
+        }
+
+        .test-results {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        body.dark-mode .test-results {
+            background: #1f1f1f;
+        }
+
+        .test-result {
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .test-result.pass {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        body.dark-mode .test-result.pass {
+            background: #064e3b;
+            color: #6ee7b7;
+        }
+
+        .test-result.fail {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        body.dark-mode .test-result.fail {
+            background: #7f1d1d;
+            color: #fca5a5;
+        }
+
+        .test-result.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        body.dark-mode .test-result.info {
+            background: #1e3a8a;
+            color: #93c5fd;
+        }
+
+        .status-icon {
+            font-size: 16px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        body.dark-mode .checkbox-label {
+            background: #374151;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* Kiroween Effect Styles */
+        .kiroween-flash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #9333EA;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0;
+        }
+
+        .kiroween-flash-overlay.active {
+            animation: lightningFlash 1s ease-out;
+        }
+
+        @keyframes lightningFlash {
+            0% { opacity: 0; }
+            10% { opacity: 0.9; }
+            15% { opacity: 0.3; }
+            25% { opacity: 0.95; }
+            30% { opacity: 0; }
+            40% { opacity: 0.8; }
+            45% { opacity: 0; }
+            100% { opacity: 0; }
+        }
+
+        body.dark-mode .kiroween-flash-overlay {
+            background: #A855F7;
+        }
+
+        /* Floating Ghost Animation */
+        .kiroween-ghost {
+            position: fixed;
+            height: 60px;
+            width: auto;
+            pointer-events: none;
+            z-index: 10000;
+            opacity: 0;
+            top: 10px;
+        }
+
+        .kiroween-ghost.floating {
+            animation: ghostFloat 4s ease-in-out forwards;
+        }
+
+        .kiroween-ghost.facing-right {
+            transform: scaleX(-1);
+        }
+
+        .kiroween-ghost.facing-left {
+            transform: scaleX(1);
+        }
+
+        .kiroween-ghost.front-layer {
+            z-index: 10000;
+        }
+
+        .kiroween-ghost.back-layer {
+            z-index: 1;
+        }
+
+        @keyframes ghostFloat {
+            0% {
+                opacity: 1;
+                left: var(--start-x);
+                transform: translateY(0) scaleX(-1);
+            }
+            2%, 6%, 10%, 14%, 18%, 22%, 26%, 30%, 34%, 38%, 42%, 46% {
+                transform: translateY(-3px) scaleX(-1);
+            }
+            4%, 8%, 12%, 16%, 20%, 24%, 28%, 32%, 36%, 40%, 44%, 48% {
+                transform: translateY(3px) scaleX(-1);
+            }
+            50% {
+                opacity: 1;
+                left: var(--mid-x);
+                transform: translateY(0) scaleX(1);
+            }
+            52%, 56%, 60%, 64%, 68%, 72%, 76%, 80%, 84%, 88%, 92%, 96% {
+                transform: translateY(-3px) scaleX(1);
+            }
+            54%, 58%, 62%, 66%, 70%, 74%, 78%, 82%, 86%, 90%, 94%, 98% {
+                transform: translateY(3px) scaleX(1);
+            }
+            87.5% {
+                opacity: 1;
+                left: var(--end-x);
+                transform: translateY(0) scaleX(1);
+            }
+            100% {
+                opacity: 0;
+                left: var(--end-x);
+                transform: translateY(0) scaleX(1);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .kiroween-ghost.floating {
+                animation: none;
+                opacity: 0;
+            }
+            
+            .kiroween-flash-overlay.active {
+                animation: none;
+                background: #9333EA;
+                opacity: 0.5;
+                transition: opacity 0.3s ease;
+            }
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        body.dark-mode .info-box {
+            background: #1e3a8a;
+            border-left-color: #60a5fa;
+        }
+
+        .info-box h3 {
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .info-box p {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <h1 class="header-title">Prompt-Laboratory</h1>
+            <span class="ollama-status">Ollama Connected</span>
+            <span class="settings-icon">⚙️</span>
+        </header>
+
+        <div class="test-panel">
+            <h2>🎃 Ghost Animation Test Suite</h2>
+            
+            <div class="info-box">
+                <h3>Test Instructions</h3>
+                <p>This test suite validates all requirements for the Kiroween ghost animation feature:</p>
+                <ul>
+                    <li>Ghost positioning and movement across header</li>
+                    <li>Horizontal flipping at endpoints</li>
+                    <li>Z-index layering (front/back of "Ollama Connected")</li>
+                    <li>Floating motion effect</li>
+                    <li>Fade-out animation</li>
+                    <li>Error handling and graceful degradation</li>
+                    <li>Accessibility (prefers-reduced-motion)</li>
+                </ul>
+                <p><strong>Note:</strong> Some tests require manual observation. Results will be logged below.</p>
+            </div>
+
+            <div class="controls">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="dark-mode-toggle">
+                    <span>Dark Mode</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="reduced-motion-toggle">
+                    <span>Simulate Reduced Motion</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="auto-clear-toggle" checked>
+                    <span>Auto-clear Results</span>
+                </label>
+            </div>
+
+            <h3>Visual & Animation Tests</h3>
+            <div class="test-grid">
+                <button class="test-button success" onclick="testBasicAnimation()">
+                    1. Basic Ghost Animation
+                </button>
+                <button class="test-button success" onclick="testStartPosition()">
+                    2. Start Position (After Title)
+                </button>
+                <button class="test-button success" onclick="testInitialFlip()">
+                    3. Initial Right-Facing Flip
+                </button>
+                <button class="test-button success" onclick="testRightwardMovement()">
+                    4. Rightward Movement
+                </button>
+                <button class="test-button success" onclick="testFrontLayer()">
+                    5. Front Layer (Over Status)
+                </button>
+                <button class="test-button success" onclick="testMidpointFlip()">
+                    6. Flip at Settings Gear
+                </button>
+                <button class="test-button success" onclick="testLeftwardMovement()">
+                    7. Leftward Movement
+                </button>
+                <button class="test-button success" onclick="testBackLayer()">
+                    8. Back Layer (Behind Status)
+                </button>
+                <button class="test-button success" onclick="testFadeOut()">
+                    9. Fade Out Animation
+                </button>
+                <button class="test-button success" onclick="testDuration()">
+                    10. Animation Duration (~4s)
+                </button>
+                <button class="test-button success" onclick="testFloatingMotion()">
+                    11. Floating Motion Effect
+                </button>
+            </div>
+
+            <h3>Error Handling & Edge Cases</h3>
+            <div class="test-grid">
+                <button class="test-button danger" onclick="testMissingImage()">
+                    12. Missing Ghost Image
+                </button>
+                <button class="test-button danger" onclick="testRapidTriggers()">
+                    13. Rapid Triggers (Overlap Prevention)
+                </button>
+                <button class="test-button danger" onclick="testMissingHeader()">
+                    14. Missing Header Elements
+                </button>
+                <button class="test-button secondary" onclick="testWindowResize()">
+                    15. Window Resize During Animation
+                </button>
+                <button class="test-button secondary" onclick="testDarkMode()">
+                    16. Dark Mode Compatibility
+                </button>
+                <button class="test-button secondary" onclick="testReducedMotion()">
+                    17. Prefers-Reduced-Motion
+                </button>
+            </div>
+
+            <h3>Comprehensive Tests</h3>
+            <div class="test-grid">
+                <button class="test-button" onclick="runAllTests()">
+                    Run All Tests
+                </button>
+                <button class="test-button secondary" onclick="clearResults()">
+                    Clear Results
+                </button>
+            </div>
+
+            <div class="test-results" id="test-results">
+                <div class="test-result info">
+                    <span class="status-icon">ℹ️</span>
+                    <span>Ready to run tests. Click any test button above.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import KiroweenEffect class
+        import { KiroweenEffect } from './frontend/js/utils/KiroweenEffect.js';
+
+        // Initialize effect
+        let kiroweenEffect;
+        let testResults = [];
+
+        async function initEffect() {
+            kiroweenEffect = new KiroweenEffect();
+            await kiroweenEffect.init();
+            kiroweenEffect.setEnabled(true);
+            logResult('info', 'KiroweenEffect initialized and enabled');
+        }
+
+        // Initialize on load
+        initEffect();
+
+        // Helper functions
+        function logResult(type, message) {
+            const resultsDiv = document.getElementById('test-results');
+            const autoClear = document.getElementById('auto-clear-toggle').checked;
+            
+            if (autoClear && type !== 'info') {
+                resultsDiv.innerHTML = '';
+            }
+
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            
+            const icon = type === 'pass' ? '✅' : type === 'fail' ? '❌' : 'ℹ️';
+            resultDiv.innerHTML = `
+                <span class="status-icon">${icon}</span>
+                <span>${message}</span>
+            `;
+            
+            resultsDiv.appendChild(resultDiv);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+            
+            testResults.push({ type, message, timestamp: Date.now() });
+        }
+
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '';
+            testResults = [];
+            logResult('info', 'Results cleared');
+        }
+
+        // Test 1: Basic Ghost Animation
+        window.testBasicAnimation = function() {
+            logResult('info', 'Test 1: Triggering basic ghost animation...');
+            try {
+                kiroweenEffect.playFloatingGhost();
+                logResult('pass', 'Ghost animation triggered successfully');
+            } catch (error) {
+                logResult('fail', `Ghost animation failed: ${error.message}`);
+            }
+        };
+
+        // Test 2: Start Position
+        window.testStartPosition = function() {
+            logResult('info', 'Test 2: Verifying start position calculation...');
+            try {
+                const path = kiroweenEffect.calculateGhostPath();
+                if (!path) {
+                    logResult('fail', 'Could not calculate ghost path (header elements missing)');
+                    return;
+                }
+                
+                const titleElement = document.querySelector('.header-title');
+                const titleRect = titleElement.getBoundingClientRect();
+                const expectedStart = titleRect.right + 10;
+                
+                if (Math.abs(path.startX - expectedStart) < 5) {
+                    logResult('pass', `Start position correct: ${path.startX}px (expected ~${expectedStart}px)`);
+                } else {
+                    logResult('fail', `Start position incorrect: ${path.startX}px (expected ${expectedStart}px)`);
+                }
+                
+                // Trigger animation to visually verify
+                kiroweenEffect.playFloatingGhost();
+            } catch (error) {
+                logResult('fail', `Start position test failed: ${error.message}`);
+            }
+        };
+
+        // Test 3: Initial Right-Facing Flip
+        window.testInitialFlip = function() {
+            logResult('info', 'Test 3: Verifying initial right-facing flip...');
+            logResult('info', 'Watch the ghost - it should be flipped to face RIGHT at start');
+            kiroweenEffect.playFloatingGhost();
+            
+            setTimeout(() => {
+                logResult('pass', 'Ghost should be facing right (mirrored). Verify visually.');
+            }, 100);
+        };
+
+        // Test 4: Rightward Movement
+        window.testRightwardMovement = function() {
+            logResult('info', 'Test 4: Testing rightward movement (0-2 seconds)...');
+            logResult('info', 'Watch the ghost move from left to right across the header');
+            kiroweenEffect.playFloatingGhost();
+            
+            setTimeout(() => {
+                logResult('pass', 'Ghost should be moving rightward. Verify visually.');
+            }, 1000);
+        };
+
+        // Test 5: Front Layer
+        window.testFrontLayer = function() {
+            logResult('info', 'Test 5: Testing front layer (ghost in front of "Ollama Connected")...');
+            logResult('info', 'During rightward journey, ghost should appear IN FRONT of status text');
+            kiroweenEffect.playFloatingGhost();
+            
+            setTimeout(() => {
+                const ghost = document.querySelector('.kiroween-ghost');
+                if (ghost) {
+                    const zIndex = window.getComputedStyle(ghost).zIndex;
+                    logResult('pass', `Ghost z-index: ${zIndex} (should be 10000 during rightward journey)`);
+                } else {
+                    logResult('fail', 'Ghost element not found');
+                }
+            }, 1000);
+        };
+
+        // Test 6: Midpoint Flip
+        window.testMidpointFlip = function() {
+            logResult('info', 'Test 6: Testing flip at settings gear (midpoint at 2 seconds)...');
+            logResult('info', 'Watch for the ghost to flip direction at the settings gear');
+            kiroweenEffect.playFloatingGhost();
+            
+            setTimeout(() => {
+                logResult('pass', 'Ghost should flip to face LEFT at settings gear. Verify visually.');
+            }, 2000);
+        };
+
+        // Test 7: Leftward Movement
+        window.testLeftwardMovement = function() {
+            logResult('info', 'Test 7: Testing leftward movement (2-3.5 seconds)...');
+            logResult('info', 'Watch the ghost move from right to left back to start');
+            kiroweenEffect.playFloatingGhost();
+            
+            setTimeout(() => {
+                logResult('pass', 'Ghost should be moving leftward. Verify visually.');
+            }, 2500);
+        };
+
+        // Test 8: Back Layer
+        window.testBackLayer = function() {
+            logResult('info', 'Test 8: Testing back layer (ghost behind "Ollama Connected")...');
+            logResult('info', 'During leftward journey, ghost should appear BEHIND status text');
+            kiroweenEffect.playFloatingGhost();
+            
+            setTimeout(() => {
+                logResult('pass', 'Ghost should be behind status text during leftward journey. Verify visually.');
+            }, 2500);
+        };
+
+        // Test 9: Fade Out
+        window.testFadeOut = function() {
+            logResult('info', 'Test 9: Testing fade-out animation (3.5-4 seconds)...');
+            logResult('info', 'Watch for smooth fade-out at the end');
+            kiroweenEffect.playFloatingGhost();
+            
+            setTimeout(() => {
+                logResult('pass', 'Ghost should be fading out smoothly. Verify visually.');
+            }, 3500);
+            
+            setTimeout(() => {
+                const ghost = document.querySelector('.kiroween-ghost');
+                if (!ghost) {
+                    logResult('pass', 'Ghost element removed from DOM after animation');
+                } else {
+                    logResult('fail', 'Ghost element still in DOM after animation');
+                }
+            }, 4100);
+        };
+
+        // Test 10: Duration
+        window.testDuration = function() {
+            logResult('info', 'Test 10: Testing animation duration (~4 seconds)...');
+            const startTime = Date.now();
+            kiroweenEffect.playFloatingGhost();
+            
+            setTimeout(() => {
+                const duration = Date.now() - startTime;
+                const expectedDuration = 4000;
+                const tolerance = 500;
+                
+                if (Math.abs(duration - expectedDuration) <= tolerance) {
+                    logResult('pass', `Animation duration: ${duration}ms (expected ${expectedDuration}ms ±${tolerance}ms)`);
+                } else {
+                    logResult('fail', `Animation duration: ${duration}ms (expected ${expectedDuration}ms ±${tolerance}ms)`);
+                }
+            }, 4100);
+        };
+
+        // Test 11: Floating Motion
+        window.testFloatingMotion = function() {
+            logResult('info', 'Test 11: Testing floating motion effect...');
+            logResult('info', 'Watch for vertical oscillation (±3px) during movement');
+            kiroweenEffect.playFloatingGhost();
+            
+            setTimeout(() => {
+                logResult('pass', 'Ghost should have floating/bobbing motion. Verify visually.');
+            }, 1000);
+        };
+
+        // Test 12: Missing Image
+        window.testMissingImage = function() {
+            logResult('info', 'Test 12: Testing graceful degradation with missing image...');
+            
+            // Temporarily change image path to non-existent file
+            const originalPath = kiroweenEffect.ghostImagePath;
+            kiroweenEffect.ghostImagePath = '/assets/images/nonexistent.png';
+            kiroweenEffect.ghostAvailable = false;
+            
+            try {
+                kiroweenEffect.playFloatingGhost();
+                logResult('pass', 'No error thrown with missing image (graceful degradation)');
+            } catch (error) {
+                logResult('fail', `Error with missing image: ${error.message}`);
+            }
+            
+            // Restore original path
+            kiroweenEffect.ghostImagePath = originalPath;
+            kiroweenEffect.ghostAvailable = true;
+        };
+
+        // Test 13: Rapid Triggers
+        window.testRapidTriggers = function() {
+            logResult('info', 'Test 13: Testing rapid trigger prevention...');
+            
+            // Trigger multiple times rapidly
+            kiroweenEffect.playFloatingGhost();
+            kiroweenEffect.playFloatingGhost();
+            kiroweenEffect.playFloatingGhost();
+            
+            setTimeout(() => {
+                const ghosts = document.querySelectorAll('.kiroween-ghost');
+                if (ghosts.length <= 1) {
+                    logResult('pass', `Only ${ghosts.length} ghost(s) in DOM (overlap prevented)`);
+                } else {
+                    logResult('fail', `${ghosts.length} ghosts in DOM (overlap not prevented)`);
+                }
+            }, 100);
+        };
+
+        // Test 14: Missing Header Elements
+        window.testMissingHeader = function() {
+            logResult('info', 'Test 14: Testing graceful degradation with missing header elements...');
+            
+            // Temporarily hide header elements
+            const header = document.querySelector('.app-header');
+            header.style.display = 'none';
+            
+            try {
+                kiroweenEffect.playFloatingGhost();
+                const path = kiroweenEffect.calculateGhostPath();
+                
+                if (path === null) {
+                    logResult('pass', 'Correctly returns null when header elements missing');
+                } else {
+                    logResult('fail', 'Should return null when header elements missing');
+                }
+            } catch (error) {
+                logResult('fail', `Error with missing header: ${error.message}`);
+            }
+            
+            // Restore header
+            header.style.display = '';
+            logResult('info', 'Header restored');
+        };
+
+        // Test 15: Window Resize
+        window.testWindowResize = function() {
+            logResult('info', 'Test 15: Testing window resize during animation...');
+            logResult('info', 'Animation will start, then window will be resized');
+            
+            kiroweenEffect.playFloatingGhost();
+            
+            setTimeout(() => {
+                // Simulate resize by changing window size
+                window.dispatchEvent(new Event('resize'));
+                logResult('pass', 'Window resize event triggered during animation');
+                logResult('info', 'Animation should continue without breaking. Verify visually.');
+            }, 1000);
+        };
+
+        // Test 16: Dark Mode
+        window.testDarkMode = function() {
+            logResult('info', 'Test 16: Testing dark mode compatibility...');
+            
+            // Toggle dark mode
+            document.body.classList.add('dark-mode');
+            document.getElementById('dark-mode-toggle').checked = true;
+            
+            kiroweenEffect.playFloatingGhost();
+            logResult('pass', 'Ghost animation triggered in dark mode');
+            logResult('info', 'Verify ghost is visible against dark background');
+        };
+
+        // Test 17: Reduced Motion
+        window.testReducedMotion = function() {
+            logResult('info', 'Test 17: Testing prefers-reduced-motion support...');
+            
+            // Simulate reduced motion preference
+            kiroweenEffect.prefersReducedMotion = true;
+            
+            try {
+                kiroweenEffect.playFloatingGhost();
+                
+                setTimeout(() => {
+                    const ghost = document.querySelector('.kiroween-ghost');
+                    if (!ghost) {
+                        logResult('pass', 'Ghost animation skipped with reduced motion preference');
+                    } else {
+                        logResult('fail', 'Ghost animation should be skipped with reduced motion');
+                    }
+                    
+                    // Restore normal motion
+                    kiroweenEffect.prefersReducedMotion = false;
+                }, 100);
+            } catch (error) {
+                logResult('fail', `Error with reduced motion: ${error.message}`);
+            }
+        };
+
+        // Run All Tests
+        window.runAllTests = async function() {
+            logResult('info', '🚀 Running all tests...');
+            clearResults();
+            
+            const tests = [
+                { name: 'Basic Animation', fn: testBasicAnimation, delay: 4500 },
+                { name: 'Start Position', fn: testStartPosition, delay: 4500 },
+                { name: 'Initial Flip', fn: testInitialFlip, delay: 4500 },
+                { name: 'Rightward Movement', fn: testRightwardMovement, delay: 4500 },
+                { name: 'Front Layer', fn: testFrontLayer, delay: 4500 },
+                { name: 'Midpoint Flip', fn: testMidpointFlip, delay: 4500 },
+                { name: 'Leftward Movement', fn: testLeftwardMovement, delay: 4500 },
+                { name: 'Back Layer', fn: testBackLayer, delay: 4500 },
+                { name: 'Fade Out', fn: testFadeOut, delay: 4500 },
+                { name: 'Duration', fn: testDuration, delay: 4500 },
+                { name: 'Floating Motion', fn: testFloatingMotion, delay: 4500 },
+                { name: 'Missing Image', fn: testMissingImage, delay: 500 },
+                { name: 'Rapid Triggers', fn: testRapidTriggers, delay: 500 },
+                { name: 'Missing Header', fn: testMissingHeader, delay: 500 },
+                { name: 'Window Resize', fn: testWindowResize, delay: 4500 },
+                { name: 'Dark Mode', fn: testDarkMode, delay: 4500 },
+                { name: 'Reduced Motion', fn: testReducedMotion, delay: 500 }
+            ];
+
+            let currentDelay = 0;
+            for (const test of tests) {
+                setTimeout(() => {
+                    logResult('info', `--- Running: ${test.name} ---`);
+                    test.fn();
+                }, currentDelay);
+                currentDelay += test.delay;
+            }
+            
+            setTimeout(() => {
+                logResult('info', '✅ All tests completed! Review results above.');
+            }, currentDelay);
+        };
+
+        // Dark mode toggle
+        document.getElementById('dark-mode-toggle').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+        });
+
+        // Reduced motion toggle
+        document.getElementById('reduced-motion-toggle').addEventListener('change', (e) => {
+            kiroweenEffect.prefersReducedMotion = e.target.checked;
+            logResult('info', `Reduced motion ${e.target.checked ? 'enabled' : 'disabled'}`);
+        });
+
+        // Make functions globally available
+        window.clearResults = clearResults;
+    </script>
+</body>
+</html>

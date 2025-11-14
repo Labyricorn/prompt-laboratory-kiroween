@@ -111,6 +111,18 @@ def update_config():
         current_config_dict.update(data)
         config = AppConfig.from_dict(current_config_dict)
         
+        # Debug logging
+        print(f"Config updated - default_model: {config.default_model}")
+        
+        # Persist configuration to file
+        config_file_path = os.getenv('CONFIG_FILE', 'config.json')
+        try:
+            config.save_to_file(config_file_path)
+            print(f"Config saved to {config_file_path}")
+        except Exception as e:
+            print(f"Warning: Failed to persist configuration to file: {e}")
+            # Continue anyway - config is updated in memory
+        
         # Test new Ollama connection if endpoint was updated
         connection_status = False
         if 'ollama_endpoint' in data:

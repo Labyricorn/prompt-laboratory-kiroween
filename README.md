@@ -1,4 +1,4 @@
-# 🧪 PromptLab
+# 🧪 Prompt-Laboratory
 
 A local-first prompt engineering environment for creating, refining, testing, and managing AI prompts with an intuitive three-panel interface.
 
@@ -27,11 +27,11 @@ A local-first prompt engineering environment for creating, refining, testing, an
 
 ### Installation
 
-1. **Download PromptLab**
+1. **Download Prompt-Laboratory**
    ```bash
    # Clone the repository or download the source code
    git clone <repository-url>
-   cd promptlab
+   cd PromptLaboratory
    ```
 
 2. **Create Virtual Environment** (Recommended)
@@ -46,7 +46,7 @@ A local-first prompt engineering environment for creating, refining, testing, an
    source venv/bin/activate
    ```
 
-3. **Start PromptLab**
+3. **Start Prompt-Laboratory**
    ```bash
    python run.py
    ```
@@ -154,9 +154,23 @@ That's it! The startup script will:
 
 ## 🔧 Configuration
 
+### Prompts Configuration
+
+**NEW**: Customize the meta-prompt used for refining objectives!
+
+Prompt-Laboratory now supports external configuration of the meta-prompt and AI parameters used for the "Refine" feature. See **[PROMPTS_CONFIGURATION_GUIDE.md](PROMPTS_CONFIGURATION_GUIDE.md)** for complete documentation.
+
+**Quick Start**:
+1. Edit `prompts_config.yaml` in the project root
+2. Modify the meta-prompt template or parameters
+3. Restart the application
+4. Backup available at `prompts_config.yaml.backup`
+
+**⚠️ Warning**: Incorrect modifications may break the refinement feature. Always keep a backup!
+
 ### Application Settings
 
-PromptLab can be configured through:
+Prompt-Laboratory can be configured through:
 
 1. **Environment Variables**
    ```bash
@@ -286,7 +300,7 @@ const testResponse = await fetch('/api/run-test', {
 ## 🗂️ Project Structure
 
 ```
-promptlab/
+PromptLaboratory/
 ├── 📁 backend/                 # Python backend
 │   ├── 📁 api/                # REST API endpoints
 │   │   ├── config.py          # Configuration API
@@ -418,7 +432,7 @@ Error: Python 3.8 or higher is required
 ❌ Import failed: Invalid format
 ```
 **Solutions:**
-- Ensure file is valid JSON format from PromptLab export
+- Ensure file is valid JSON format from Prompt-Laboratory export
 - Check for file corruption during transfer
 - Use conflict resolution dialog for duplicate names
 - Verify all required fields are present in import data
@@ -513,7 +527,7 @@ Guidelines:
 
 ## 🤝 Contributing
 
-PromptLab is designed to be extensible and welcomes contributions:
+Prompt-Laboratory is designed to be extensible and welcomes contributions:
 
 1. **Fork the repository**
 2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
@@ -526,7 +540,7 @@ PromptLab is designed to be extensible and welcomes contributions:
 ```bash
 # Clone your fork
 git clone <your-fork-url>
-cd promptlab
+cd PromptLaboratory
 
 # Create development environment
 python -m venv venv
@@ -552,7 +566,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgments
 
-- **[Kiro.dev Team](https://kiro.dev)** for the incredible AI-powered development platform that made building PromptLab possible
+- **[Kiro.dev Team](https://kiro.dev)** for the incredible AI-powered development platform that made building Prompt-Laboratory possible
 - **Ollama Team** for the excellent local AI platform
 - **Monaco Editor** for the powerful code editing experience
 - **Flask Community** for the robust web framework

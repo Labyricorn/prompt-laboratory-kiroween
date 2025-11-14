@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost Animation Fix Verification</title>
+    <link rel="stylesheet" href="frontend/css/styles.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .app-header {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .settings-icon {
+            font-size: 24px;
+        }
+        .test-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+        }
+        .test-button:hover {
+            background: #2563eb;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .status.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <h1 class="header-title">Prompt-Laboratory</h1>
+            <span class="settings-icon">⚙️</span>
+        </header>
+
+        <div class="test-panel">
+            <h2>🔍 Ghost Animation Fix Verification</h2>
+            <p>This page verifies that the ghost animation CSS and JavaScript fixes are working correctly.</p>
+            
+            <div style="margin: 20px 0;">
+                <button class="test-button" onclick="runDiagnostics()">Run Diagnostics</button>
+                <button class="test-button" onclick="testGhostAnimation()">Test Ghost Animation</button>
+                <button class="test-button" onclick="testFlashAnimation()">Test Flash Animation</button>
+                <button class="test-button" onclick="testCompleteEffect()">Test Complete Effect</button>
+            </div>
+
+            <div id="status"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { KiroweenEffect } from './frontend/js/utils/KiroweenEffect.js';
+
+        let kiroweenEffect;
+        
+        async function init() {
+            try {
+                kiroweenEffect = new KiroweenEffect();
+                await kiroweenEffect.init();
+                kiroweenEffect.setEnabled(true);
+                window.kiroweenEffect = kiroweenEffect;
+                logStatus('success', '✅ KiroweenEffect initialized successfully');
+            } catch (error) {
+                logStatus('error', '❌ Failed to initialize: ' + error.message);
+            }
+        }
+
+        function logStatus(type, message) {
+            const statusDiv = document.getElementById('status');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = message;
+            statusDiv.appendChild(div);
+        }
+
+        window.runDiagnostics = function() {
+            document.getElementById('status').innerHTML = '';
+            logStatus('info', '🔍 Running diagnostics...');
+
+            // Check CSS loaded
+            const ghostStyles = getComputedStyle(document.documentElement).getPropertyValue('--primary-color');
+            if (ghostStyles) {
+                logStatus('success', '✅ CSS file loaded');
+            } else {
+                logStatus('error', '❌ CSS file not loaded');
+            }
+
+            // Check header elements
+            const title = document.querySelector('.header-title');
+            const gear = document.querySelector('.settings-icon');
+            if (title && gear) {
+                logStatus('success', '✅ Header elements found');
+            } else {
+                logStatus('error', '❌ Header elements missing');
+            }
+
+            // Check KiroweenEffect
+            if (window.kiroweenEffect) {
+                logStatus('success', '✅ KiroweenEffect initialized');
+                logStatus('info', `   - Enabled: ${window.kiroweenEffect.isEnabled()}`);
+                logStatus('info', `   - Ghost Available: ${window.kiroweenEffect.ghostAvailable}`);
+                logStatus('info', `   - Audio Available: ${window.kiroweenEffect.audioAvailable}`);
+            } else {
+                logStatus('error', '❌ KiroweenEffect not initialized');
+            }
+
+            // Check ghost path calculation
+            if (window.kiroweenEffect) {
+                const path = window.kiroweenEffect.calculateGhostPath();
+                if (path) {
+                    logStatus('success', `✅ Ghost path calculated: start=${path.startX}px, mid=${path.midX}px, end=${path.endX}px`);
+                } else {
+                    logStatus('error', '❌ Ghost path calculation failed');
+                }
+            }
+        };
+
+        window.testGhostAnimation = function() {
+            document.getElementById('status').innerHTML = '';
+            logStatus('info', '👻 Testing ghost animation...');
+            
+            if (!window.kiroweenEffect) {
+                logStatus('error', '❌ KiroweenEffect not initialized');
+                return;
+            }
+
+            if (!window.kiroweenEffect.ghostAvailable) {
+                logStatus('error', '❌ Ghost image not available. Check console for loading errors.');
+                return;
+            }
+
+            try {
+                window.kiroweenEffect.playFloatingGhost();
+                logStatus('success', '✅ Ghost animation triggered! Watch the header.');
+            } catch (error) {
+                logStatus('error', '❌ Ghost animation failed: ' + error.message);
+            }
+        };
+
+        window.testFlashAnimation = function() {
+            document.getElementById('status').innerHTML = '';
+            logStatus('info', '⚡ Testing flash animation...');
+            
+            if (!window.kiroweenEffect) {
+                logStatus('error', '❌ KiroweenEffect not initialized');
+                return;
+            }
+
+            try {
+                window.kiroweenEffect.playLightningFlash();
+                logStatus('success', '✅ Flash animation triggered! Watch for purple flash.');
+            } catch (error) {
+                logStatus('error', '❌ Flash animation failed: ' + error.message);
+            }
+        };
+
+        window.testCompleteEffect = function() {
+            document.getElementById('status').innerHTML = '';
+            logStatus('info', '🎉 Testing complete effect (flash + ghost + audio)...');
+            
+            if (!window.kiroweenEffect) {
+                logStatus('error', '❌ KiroweenEffect not initialized');
+                return;
+            }
+
+            try {
+                window.kiroweenEffect.trigger();
+                logStatus('success', '✅ Complete effect triggered!');
+                if (!window.kiroweenEffect.ghostAvailable) {
+                    logStatus('info', 'ℹ️ Ghost not available (image not loaded)');
+                }
+                if (!window.kiroweenEffect.audioAvailable) {
+                    logStatus('info', 'ℹ️ Audio not available (file not loaded)');
+                }
+            } catch (error) {
+                logStatus('error', '❌ Complete effect failed: ' + error.message);
+            }
+        };
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

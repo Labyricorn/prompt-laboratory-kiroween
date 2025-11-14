@@ -75,7 +75,7 @@ def create_app():
             
             return jsonify({
                 'status': 'healthy',
-                'service': 'PromptLab Backend',
+                'service': 'Prompt-Laboratory Backend',
                 'timestamp': datetime.now().isoformat(),
                 'version': '1.0.0',
                 'components': {
@@ -92,7 +92,7 @@ def create_app():
             app.logger.error(f"Health check failed: {e}")
             return jsonify({
                 'status': 'error',
-                'service': 'PromptLab Backend',
+                'service': 'Prompt-Laboratory Backend',
                 'timestamp': datetime.now().isoformat(),
                 'error': str(e)
             }), 500

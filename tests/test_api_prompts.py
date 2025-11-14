@@ -1,5 +1,5 @@
 """
-Integration tests for PromptLab Prompt API endpoints
+Integration tests for Prompt-Laboratory Prompt API endpoints
 Tests for CRUD operations, search functionality, and error handling
 """
 
@@ -73,7 +73,7 @@ class TestPromptsAPI:
         assert response.status_code == 200
         data = response.get_json()
         assert data['status'] == 'healthy'
-        assert data['service'] == 'PromptLab Backend'
+        assert data['service'] == 'Prompt-Laboratory Backend'
     
     def test_get_prompts_empty(self, client):
         """Test getting prompts when database is empty"""

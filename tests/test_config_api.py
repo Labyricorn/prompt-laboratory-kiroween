@@ -1,5 +1,5 @@
 """
-Tests for PromptLab Configuration API Endpoints
+Tests for Prompt-Laboratory Configuration API Endpoints
 """
 
 import pytest

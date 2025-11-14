@@ -1,0 +1,93 @@
+# Prompt-Laboratory Prompts Configuration
+# This file contains the meta-prompt used for refining objectives into system prompts
+# and the parameters used for AI generation.
+#
+# WARNING: Modifying this file incorrectly may break the prompt refinement feature.
+# Always keep a backup of the original configuration before making changes.
+#
+# Last Updated: 2025-11-13
+
+# Meta-Prompt Configuration
+# This prompt is used to convert simple objectives into detailed system prompts
+meta_prompt:
+  # The template for the meta-prompt
+  # Use {objective} as a placeholder for the user's objective
+  template: |
+    You are an expert prompt engineer. Your task is to convert a simple objective into a detailed, effective system prompt that will guide an AI assistant to achieve that objective.
+
+    Guidelines for creating system prompts:
+    1. Be specific and clear about the role and behavior expected
+    2. Include relevant context and constraints
+    3. Specify the desired output format if applicable
+    4. Add examples or templates when helpful
+    5. Include error handling or edge case instructions
+    6. Make it actionable and measurable
+
+    The objective to convert into a system prompt is:
+    {objective}
+
+    Create a comprehensive system prompt that will effectively guide an AI to accomplish this objective. Return only the system prompt text, without any additional commentary or explanation.
+  
+  # Parameters for the refinement generation
+  parameters:
+    # Temperature: Controls randomness (0.0 = deterministic, 2.0 = very creative)
+    # Lower values (0.1-0.5) produce more consistent, focused outputs
+    # Higher values (0.7-1.5) produce more creative, varied outputs
+    # Recommended: 0.3 for consistent prompt refinement
+    temperature: 0.3
+    
+    # Top P: Nucleus sampling threshold (0.0-1.0)
+    # Controls diversity by limiting token selection to top probability mass
+    # Lower values (0.5-0.7) are more focused
+    # Higher values (0.9-1.0) allow more diversity
+    # Recommended: 0.9 for balanced refinement
+    top_p: 0.9
+    
+    # Top K: Limits token selection to top K most likely tokens
+    # Set to 0 to disable (uses top_p instead)
+    # Typical values: 40-100
+    # Recommended: 0 (disabled, using top_p)
+    top_k: 0
+    
+    # Repeat Penalty: Penalizes repetition (1.0 = no penalty, >1.0 = penalize)
+    # Higher values reduce repetition
+    # Recommended: 1.1 for slight repetition reduction
+    repeat_penalty: 1.1
+
+# Customization Tips:
+# 
+# 1. Adjusting the Meta-Prompt:
+#    - Modify the guidelines to emphasize specific aspects
+#    - Add domain-specific instructions
+#    - Change the tone or style of generated prompts
+#    - Add examples of good system prompts
+#
+# 2. Adjusting Temperature:
+#    - Lower (0.1-0.3): More consistent, predictable outputs
+#    - Medium (0.4-0.7): Balanced creativity and consistency
+#    - Higher (0.8-1.5): More creative, varied outputs
+#
+# 3. Adjusting Top P:
+#    - Lower (0.5-0.7): More focused, deterministic
+#    - Medium (0.8-0.9): Balanced diversity
+#    - Higher (0.95-1.0): Maximum diversity
+#
+# 4. Testing Changes:
+#    - Always test with sample objectives after changes
+#    - Compare outputs before and after modifications
+#    - Revert to backup if results are unsatisfactory
+#
+# 5. Common Modifications:
+#    - Add industry-specific guidelines
+#    - Emphasize certain prompt characteristics
+#    - Adjust creativity vs consistency balance
+#    - Add constraints or requirements
+
+# Backup Information:
+# A backup of the original configuration is saved as:
+# prompts_config.yaml.backup
+# 
+# To restore from backup:
+# 1. Stop the application
+# 2. Copy prompts_config.yaml.backup to prompts_config.yaml
+# 3. Restart the application

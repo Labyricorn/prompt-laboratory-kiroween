@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiroween Effect - Error Handling & Edge Cases Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #9333EA;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        .test-section {
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .test-section h2 {
+            color: #A855F7;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .test-section p {
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background: #9333EA;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #7C3AED;
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        button.secondary {
+            background: #444;
+        }
+
+        button.secondary:hover {
+            background: #555;
+        }
+
+        button.danger {
+            background: #DC2626;
+        }
+
+        button.danger:hover {
+            background: #B91C1C;
+        }
+
+        .status {
+            background: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .status.success {
+            border-color: #10B981;
+            color: #10B981;
+        }
+
+        .status.error {
+            border-color: #DC2626;
+            color: #DC2626;
+        }
+
+        .status.warning {
+            border-color: #F59E0B;
+            color: #F59E0B;
+        }
+
+        .status.info {
+            border-color: #3B82F6;
+            color: #3B82F6;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group label {
+            color: #9333EA;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .log-container {
+            background: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-radius: 4px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid #555;
+            padding-left: 10px;
+        }
+
+        .log-entry.info {
+            border-left-color: #3B82F6;
+            color: #3B82F6;
+        }
+
+        .log-entry.success {
+            border-left-color: #10B981;
+            color: #10B981;
+        }
+
+        .log-entry.warning {
+            border-left-color: #F59E0B;
+            color: #F59E0B;
+        }
+
+        .log-entry.error {
+            border-left-color: #DC2626;
+            color: #DC2626;
+        }
+
+        .kiroween-flash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #9333EA;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0;
+        }
+
+        .kiroween-flash-overlay.active {
+            animation: lightningFlash 1s ease-out;
+        }
+
+        @keyframes lightningFlash {
+            0% { opacity: 0; }
+            10% { opacity: 0.9; }
+            15% { opacity: 0.3; }
+            25% { opacity: 0.95; }
+            30% { opacity: 0; }
+            40% { opacity: 0.8; }
+            45% { opacity: 0; }
+            100% { opacity: 0; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .kiroween-flash-overlay.active {
+                animation: none;
+                opacity: 0.5;
+                transition: opacity 0.3s ease;
+            }
+        }
+
+        .counter {
+            display: inline-block;
+            background: #3a3a3a;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎃 Kiroween Effect - Error Handling & Edge Cases Test</h1>
+        <p class="subtitle">Comprehensive testing suite for verifying error handling and graceful degradation</p>
+
+        <!-- Test 1: Audio Loading Failure -->
+        <div class="test-section">
+            <h2>Test 1: Audio Loading Failure (Missing File)</h2>
+            <p>Tests graceful degradation when audio file is missing or fails to load.</p>
+            <div class="test-controls">
+                <button id="test1-init">Initialize with Missing Audio</button>
+                <button id="test1-trigger" disabled>Trigger Effect</button>
+                <button id="test1-reset" class="secondary">Reset</button>
+            </div>
+            <div id="test1-status" class="status">Ready to test</div>
+        </div>
+
+        <!-- Test 2: Audio Playback Failure -->
+        <div class="test-section">
+            <h2>Test 2: Audio Playback Failure (Autoplay Blocked)</h2>
+            <p>Tests graceful degradation when browser blocks audio playback.</p>
+            <div class="test-controls">
+                <button id="test2-init">Initialize with Blocked Audio</button>
+                <button id="test2-trigger" disabled>Trigger Effect</button>
+                <button id="test2-reset" class="secondary">Reset</button>
+            </div>
+            <div id="test2-status" class="status">Ready to test</div>
+        </div>
+
+        <!-- Test 3: localStorage Failure -->
+        <div class="test-section">
+            <h2>Test 3: localStorage Failure (Quota Exceeded)</h2>
+            <p>Tests graceful degradation when localStorage is unavailable or quota is exceeded.</p>
+            <div class="test-controls">
+                <button id="test3-init">Initialize with Blocked Storage</button>
+                <button id="test3-enable">Enable Effect</button>
+                <button id="test3-disable">Disable Effect</button>
+                <button id="test3-check">Check State</button>
+                <button id="test3-reset" class="secondary">Reset</button>
+            </div>
+            <div id="test3-status" class="status">Ready to test</div>
+        </div>
+
+        <!-- Test 4: Rapid Test Execution -->
+        <div class="test-section">
+            <h2>Test 4: Rapid Test Execution (Multiple Triggers)</h2>
+            <p>Tests that multiple rapid triggers don't cause issues or overlap.</p>
+            <div class="checkbox-group">
+                <input type="checkbox" id="test4-enable" checked>
+                <label for="test4-enable">Enable Kiroween Effect</label>
+            </div>
+            <div class="test-controls">
+                <button id="test4-init">Initialize Normal Effect</button>
+                <button id="test4-trigger-once" disabled>Trigger Once</button>
+                <button id="test4-trigger-rapid" disabled>Trigger 5x Rapidly</button>
+                <button id="test4-trigger-spam" disabled>Trigger 20x Spam</button>
+                <button id="test4-reset" class="secondary">Reset</button>
+            </div>
+            <div id="test4-status" class="status">Ready to test</div>
+            <div style="margin-top: 10px;">
+                <strong>Trigger Count:</strong> <span class="counter" id="test4-counter">0</span>
+            </div>
+        </div>
+
+        <!-- Test 5: Flash Overlay Missing -->
+        <div class="test-section">
+            <h2>Test 5: Flash Overlay Missing</h2>
+            <p>Tests graceful degradation when flash overlay element is not created or removed.</p>
+            <div class="test-controls">
+                <button id="test5-init">Initialize Without Overlay</button>
+                <button id="test5-trigger" disabled>Trigger Effect</button>
+                <button id="test5-reset" class="secondary">Reset</button>
+            </div>
+            <div id="test5-status" class="status">Ready to test</div>
+        </div>
+
+        <!-- Test 6: Prefers Reduced Motion -->
+        <div class="test-section">
+            <h2>Test 6: Prefers Reduced Motion</h2>
+            <p>Tests that effect respects accessibility preferences (check browser DevTools to simulate).</p>
+            <div class="test-controls">
+                <button id="test6-init">Initialize Normal Effect</button>
+                <button id="test6-trigger" disabled>Trigger Effect</button>
+                <button id="test6-check">Check Motion Preference</button>
+                <button id="test6-reset" class="secondary">Reset</button>
+            </div>
+            <div id="test6-status" class="status">Ready to test</div>
+        </div>
+
+        <!-- Console Log Monitor -->
+        <div class="test-section">
+            <h2>Console Log Monitor</h2>
+            <p>Real-time monitoring of console warnings and errors.</p>
+            <div class="test-controls">
+                <button id="clear-logs" class="secondary">Clear Logs</button>
+            </div>
+            <div id="log-container" class="log-container"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import KiroweenEffect
+        import { KiroweenEffect } from './frontend/js/utils/KiroweenEffect.js';
+
+        // Global test instances
+        let testInstances = {
+            test1: null,
+            test2: null,
+            test3: null,
+            test4: null,
+            test5: null,
+            test6: null
+        };
+
+        let test4TriggerCount = 0;
+
+        // Console log interceptor
+        const logContainer = document.getElementById('log-container');
+        const originalConsoleWarn = console.warn;
+        const originalConsoleError = console.error;
+        const originalConsoleLog = console.log;
+
+        function addLogEntry(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        console.warn = function(...args) {
+            originalConsoleWarn.apply(console, args);
+            addLogEntry(args.join(' '), 'warning');
+        };
+
+        console.error = function(...args) {
+            originalConsoleError.apply(console, args);
+            addLogEntry(args.join(' '), 'error');
+        };
+
+        // Add success logging helper
+        window.logSuccess = function(message) {
+            addLogEntry(message, 'success');
+        };
+
+        document.getElementById('clear-logs').addEventListener('click', () => {
+            logContainer.innerHTML = '';
+        });
+
+        // Helper function to update status
+        function updateStatus(testId, message, type = 'info') {
+            const statusEl = document.getElementById(`${testId}-status`);
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        // ===== TEST 1: Audio Loading Failure =====
+        document.getElementById('test1-init').addEventListener('click', async () => {
+            updateStatus('test1', 'Initializing with missing audio path...', 'info');
+            
+            testInstances.test1 = new KiroweenEffect();
+            testInstances.test1.audioPath = '/assets/audio/nonexistent-file.wav';
+            testInstances.test1.setEnabled(true);
+            
+            try {
+                await testInstances.test1.init();
+                updateStatus('test1', 'Initialized. Audio should have failed to load (check console).', 'success');
+                document.getElementById('test1-trigger').disabled = false;
+            } catch (error) {
+                updateStatus('test1', `Initialization error: ${error.message}`, 'error');
+            }
+        });
+
+        document.getElementById('test1-trigger').addEventListener('click', () => {
+            if (testInstances.test1) {
+                testInstances.test1.trigger();
+                updateStatus('test1', 'Effect triggered. Visual should work, audio should be skipped.', 'success');
+            }
+        });
+
+        document.getElementById('test1-reset').addEventListener('click', () => {
+            testInstances.test1 = null;
+            document.getElementById('test1-trigger').disabled = true;
+            updateStatus('test1', 'Reset complete. Ready to test.', 'info');
+        });
+
+        // ===== TEST 2: Audio Playback Failure =====
+        document.getElementById('test2-init').addEventListener('click', async () => {
+            updateStatus('test2', 'Initializing with mocked audio playback failure...', 'info');
+            
+            testInstances.test2 = new KiroweenEffect();
+            testInstances.test2.setEnabled(true);
+            
+            await testInstances.test2.init();
+            
+            // Mock audio play to throw error
+            if (testInstances.test2.audioElement) {
+                const originalPlay = testInstances.test2.audioElement.play.bind(testInstances.test2.audioElement);
+                testInstances.test2.audioElement.play = function() {
+                    return Promise.reject(new Error('NotAllowedError: play() failed because the user didn\'t interact with the document first'));
+                };
+            }
+            
+            updateStatus('test2', 'Initialized with mocked autoplay block.', 'success');
+            document.getElementById('test2-trigger').disabled = false;
+        });
+
+        document.getElementById('test2-trigger').addEventListener('click', () => {
+            if (testInstances.test2) {
+                testInstances.test2.trigger();
+                updateStatus('test2', 'Effect triggered. Visual should work, audio should fail gracefully (check console).', 'success');
+            }
+        });
+
+        document.getElementById('test2-reset').addEventListener('click', () => {
+            testInstances.test2 = null;
+            document.getElementById('test2-trigger').disabled = true;
+            updateStatus('test2', 'Reset complete. Ready to test.', 'info');
+        });
+
+        // ===== TEST 3: localStorage Failure =====
+        document.getElementById('test3-init').addEventListener('click', async () => {
+            updateStatus('test3', 'Initializing with mocked localStorage failure...', 'info');
+            
+            testInstances.test3 = new KiroweenEffect();
+            
+            // Mock localStorage to throw errors
+            const originalSetItem = Storage.prototype.setItem;
+            const originalGetItem = Storage.prototype.getItem;
+            
+            Storage.prototype.setItem = function() {
+                throw new Error('QuotaExceededError: localStorage quota exceeded');
+            };
+            
+            Storage.prototype.getItem = function() {
+                throw new Error('SecurityError: localStorage access denied');
+            };
+            
+            await testInstances.test3.init();
+            
+            // Restore localStorage
+            Storage.prototype.setItem = originalSetItem;
+            Storage.prototype.getItem = originalGetItem;
+            
+            updateStatus('test3', 'Initialized with mocked storage failure. Effect should use in-memory state.', 'success');
+        });
+
+        document.getElementById('test3-enable').addEventListener('click', () => {
+            if (testInstances.test3) {
+                // Mock localStorage again for this operation
+                const originalSetItem = Storage.prototype.setItem;
+                Storage.prototype.setItem = function() {
+                    throw new Error('QuotaExceededError: localStorage quota exceeded');
+                };
+                
+                testInstances.test3.setEnabled(true);
+                
+                Storage.prototype.setItem = originalSetItem;
+                
+                updateStatus('test3', `Enabled (in-memory). State: ${testInstances.test3.isEnabled()}`, 'success');
+            }
+        });
+
+        document.getElementById('test3-disable').addEventListener('click', () => {
+            if (testInstances.test3) {
+                const originalSetItem = Storage.prototype.setItem;
+                Storage.prototype.setItem = function() {
+                    throw new Error('QuotaExceededError: localStorage quota exceeded');
+                };
+                
+                testInstances.test3.setEnabled(false);
+                
+                Storage.prototype.setItem = originalSetItem;
+                
+                updateStatus('test3', `Disabled (in-memory). State: ${testInstances.test3.isEnabled()}`, 'success');
+            }
+        });
+
+        document.getElementById('test3-check').addEventListener('click', () => {
+            if (testInstances.test3) {
+                const enabled = testInstances.test3.isEnabled();
+                updateStatus('test3', `Current state: ${enabled ? 'ENABLED' : 'DISABLED'}`, 'info');
+            }
+        });
+
+        document.getElementById('test3-reset').addEventListener('click', () => {
+            testInstances.test3 = null;
+            updateStatus('test3', 'Reset complete. Ready to test.', 'info');
+        });
+
+        // ===== TEST 4: Rapid Test Execution =====
+        document.getElementById('test4-init').addEventListener('click', async () => {
+            updateStatus('test4', 'Initializing normal effect...', 'info');
+            
+            testInstances.test4 = new KiroweenEffect();
+            testInstances.test4.setEnabled(true);
+            await testInstances.test4.init();
+            
+            test4TriggerCount = 0;
+            document.getElementById('test4-counter').textContent = test4TriggerCount;
+            
+            updateStatus('test4', 'Initialized. Ready for rapid trigger tests.', 'success');
+            document.getElementById('test4-trigger-once').disabled = false;
+            document.getElementById('test4-trigger-rapid').disabled = false;
+            document.getElementById('test4-trigger-spam').disabled = false;
+        });
+
+        document.getElementById('test4-enable').addEventListener('change', (e) => {
+            if (testInstances.test4) {
+                testInstances.test4.setEnabled(e.target.checked);
+                updateStatus('test4', `Effect ${e.target.checked ? 'enabled' : 'disabled'}`, 'info');
+            }
+        });
+
+        document.getElementById('test4-trigger-once').addEventListener('click', () => {
+            if (testInstances.test4) {
+                testInstances.test4.trigger();
+                test4TriggerCount++;
+                document.getElementById('test4-counter').textContent = test4TriggerCount;
+                updateStatus('test4', 'Triggered once.', 'success');
+            }
+        });
+
+        document.getElementById('test4-trigger-rapid').addEventListener('click', () => {
+            if (testInstances.test4) {
+                updateStatus('test4', 'Triggering 5 times rapidly...', 'info');
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        testInstances.test4.trigger();
+                        test4TriggerCount++;
+                        document.getElementById('test4-counter').textContent = test4TriggerCount;
+                    }, i * 100);
+                }
+                setTimeout(() => {
+                    updateStatus('test4', 'Rapid trigger complete. Check for visual/audio issues.', 'success');
+                }, 600);
+            }
+        });
+
+        document.getElementById('test4-trigger-spam').addEventListener('click', () => {
+            if (testInstances.test4) {
+                updateStatus('test4', 'Triggering 20 times (spam test)...', 'warning');
+                for (let i = 0; i < 20; i++) {
+                    setTimeout(() => {
+                        testInstances.test4.trigger();
+                        test4TriggerCount++;
+                        document.getElementById('test4-counter').textContent = test4TriggerCount;
+                    }, i * 50);
+                }
+                setTimeout(() => {
+                    updateStatus('test4', 'Spam test complete. System should remain stable.', 'success');
+                }, 1100);
+            }
+        });
+
+        document.getElementById('test4-reset').addEventListener('click', () => {
+            testInstances.test4 = null;
+            test4TriggerCount = 0;
+            document.getElementById('test4-counter').textContent = test4TriggerCount;
+            document.getElementById('test4-trigger-once').disabled = true;
+            document.getElementById('test4-trigger-rapid').disabled = true;
+            document.getElementById('test4-trigger-spam').disabled = true;
+            updateStatus('test4', 'Reset complete. Ready to test.', 'info');
+        });
+
+        // ===== TEST 5: Flash Overlay Missing =====
+        document.getElementById('test5-init').addEventListener('click', async () => {
+            updateStatus('test5', 'Initializing without creating flash overlay...', 'info');
+            
+            testInstances.test5 = new KiroweenEffect();
+            testInstances.test5.setEnabled(true);
+            
+            // Override createFlashOverlay to do nothing
+            testInstances.test5.createFlashOverlay = function() {
+                console.warn('Flash overlay creation skipped for test');
+                this.flashOverlay = null;
+            };
+            
+            await testInstances.test5.init();
+            
+            updateStatus('test5', 'Initialized without overlay. Trigger should handle gracefully.', 'success');
+            document.getElementById('test5-trigger').disabled = false;
+        });
+
+        document.getElementById('test5-trigger').addEventListener('click', () => {
+            if (testInstances.test5) {
+                testInstances.test5.trigger();
+                updateStatus('test5', 'Effect triggered. Should log warning and continue (check console).', 'success');
+            }
+        });
+
+        document.getElementById('test5-reset').addEventListener('click', () => {
+            testInstances.test5 = null;
+            document.getElementById('test5-trigger').disabled = true;
+            updateStatus('test5', 'Reset complete. Ready to test.', 'info');
+        });
+
+        // ===== TEST 6: Prefers Reduced Motion =====
+        document.getElementById('test6-init').addEventListener('click', async () => {
+            updateStatus('test6', 'Initializing normal effect...', 'info');
+            
+            testInstances.test6 = new KiroweenEffect();
+            testInstances.test6.setEnabled(true);
+            await testInstances.test6.init();
+            
+            updateStatus('test6', 'Initialized. Use DevTools to simulate prefers-reduced-motion.', 'success');
+            document.getElementById('test6-trigger').disabled = false;
+        });
+
+        document.getElementById('test6-trigger').addEventListener('click', () => {
+            if (testInstances.test6) {
+                testInstances.test6.trigger();
+                updateStatus('test6', 'Effect triggered. Animation should respect motion preferences.', 'success');
+            }
+        });
+
+        document.getElementById('test6-check').addEventListener('click', () => {
+            const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            updateStatus('test6', `Prefers Reduced Motion: ${prefersReduced ? 'YES' : 'NO'}`, 'info');
+        });
+
+        document.getElementById('test6-reset').addEventListener('click', () => {
+            testInstances.test6 = null;
+            document.getElementById('test6-trigger').disabled = true;
+            updateStatus('test6', 'Reset complete. Ready to test.', 'info');
+        });
+
+        // Initial log
+        addLogEntry('Test suite initialized. Ready to run tests.', 'success');
+    </script>
+</body>
+</html>

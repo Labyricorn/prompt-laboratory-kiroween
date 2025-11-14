@@ -1,4 +1,6 @@
 // Test Chamber Panel Component
+import { KiroweenEffect } from '../utils/KiroweenEffect.js';
+
 export class TestChamberPanel {
     constructor({ eventBus, apiClient, config }) {
         this.eventBus = eventBus;
@@ -13,10 +15,18 @@ export class TestChamberPanel {
         this.modelSelect = null;
         this.temperatureSlider = null;
         this.temperatureValue = null;
+        this.timeoutSlider = null;
+        this.timeoutValue = null;
         this.runTestBtn = null;
         this.responseOutput = null;
         this.yamlOutput = null;
+        this.copyResponseBtn = null;
+        this.saveResponseBtn = null;
         this.copyYamlBtn = null;
+        this.kiroweenCheckbox = null;
+        
+        // Kiroween effect instance
+        this.kiroweenEffect = null;
     }
     
     init() {
@@ -25,12 +35,24 @@ export class TestChamberPanel {
         this.modelSelect = document.getElementById('model-select');
         this.temperatureSlider = document.getElementById('temperature-slider');
         this.temperatureValue = document.getElementById('temperature-value');
+        this.timeoutSlider = document.getElementById('timeout-slider');
+        this.timeoutValue = document.getElementById('timeout-value');
         this.runTestBtn = document.getElementById('run-test-btn');
         this.responseOutput = document.getElementById('test-response');
         this.yamlOutput = document.getElementById('yaml-output');
+        this.copyResponseBtn = document.getElementById('copy-response-btn');
+        this.saveResponseBtn = document.getElementById('save-response-btn');
         this.copyYamlBtn = document.getElementById('copy-yaml-btn');
+        this.kiroweenCheckbox = document.getElementById('kiroween-checkbox');
+        
+        // Initialize Kiroween effect
+        this.kiroweenEffect = new KiroweenEffect();
+        this.kiroweenEffect.init().then(() => {
+            console.log('KiroweenEffect initialized, ghostAvailable:', this.kiroweenEffect.ghostAvailable);
+        });
         
         this.setupEventListeners();
+        this.initKiroweenCheckbox();
         console.log('TestChamberPanel initialized');
     }
     
@@ -41,6 +63,14 @@ export class TestChamberPanel {
                 const value = parseFloat(e.target.value);
                 this.temperatureValue.textContent = value.toFixed(1);
                 this.validateTemperature(value);
+            });
+        }
+        
+        // Timeout slider
+        if (this.timeoutSlider && this.timeoutValue) {
+            this.timeoutSlider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.timeoutValue.textContent = value;
             });
         }
         
@@ -69,10 +99,31 @@ export class TestChamberPanel {
             });
         }
         
+        // Copy response button
+        if (this.copyResponseBtn) {
+            this.copyResponseBtn.addEventListener('click', () => {
+                this.handleCopyResponse();
+            });
+        }
+        
+        // Save response button
+        if (this.saveResponseBtn) {
+            this.saveResponseBtn.addEventListener('click', () => {
+                this.handleSaveResponse();
+            });
+        }
+        
         // Copy YAML button
         if (this.copyYamlBtn) {
             this.copyYamlBtn.addEventListener('click', () => {
                 this.handleCopyYaml();
+            });
+        }
+        
+        // Kiroween checkbox
+        if (this.kiroweenCheckbox) {
+            this.kiroweenCheckbox.addEventListener('change', (e) => {
+                this.handleKiroweenToggle(e.target.checked);
             });
         }
     }
@@ -109,7 +160,8 @@ export class TestChamberPanel {
             const option = document.createElement('option');
             // Handle both string models and object models with name property
             const modelName = typeof model === 'string' ? model : model.name;
-            const modelDisplay = typeof model === 'string' ? model : `${model.name} (${model.size || 'unknown size'})`;
+            // Display only the clean model name without size information
+            const modelDisplay = modelName;
             
             option.value = modelName;
             option.textContent = modelDisplay;
@@ -166,11 +218,64 @@ export class TestChamberPanel {
             system_prompt: this.currentPromptContext.system_prompt,
             user_input: testMessage,
             model: this.modelSelect.value,
-            temperature: parseFloat(this.temperatureSlider.value)
+            temperature: parseFloat(this.temperatureSlider.value),
+            timeout: parseInt(this.timeoutSlider.value)
         };
         
         console.log('TestChamberPanel: Running test with data:', testData);
         this.eventBus.emit('test:run-requested', testData);
+    }
+    
+    handleCopyResponse() {
+        const responseContent = this.responseOutput?.textContent?.trim();
+        if (!responseContent) {
+            this.eventBus.emit('toast:show', 'No response to copy', 'warning');
+            return;
+        }
+        
+        navigator.clipboard.writeText(responseContent).then(() => {
+            this.eventBus.emit('toast:show', 'Response copied to clipboard', 'success');
+            console.log('TestChamberPanel: Response copied to clipboard');
+        }).catch(error => {
+            console.error('Failed to copy response:', error);
+            this.eventBus.emit('toast:show', 'Failed to copy response', 'error');
+        });
+    }
+    
+    handleSaveResponse() {
+        const responseContent = this.responseOutput?.textContent?.trim();
+        if (!responseContent) {
+            this.eventBus.emit('toast:show', 'No response to save', 'warning');
+            return;
+        }
+        
+        try {
+            // Create a blob with the response content
+            const blob = new Blob([responseContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            // Create a temporary download link
+            const link = document.createElement('a');
+            link.href = url;
+            
+            // Generate filename with timestamp
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            link.download = `response-${timestamp}.txt`;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            
+            // Cleanup
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            this.eventBus.emit('toast:show', 'Response saved to file', 'success');
+            console.log('TestChamberPanel: Response saved to file');
+        } catch (error) {
+            console.error('Failed to save response:', error);
+            this.eventBus.emit('toast:show', 'Failed to save response', 'error');
+        }
     }
     
     handleCopyYaml() {
@@ -222,9 +327,27 @@ export class TestChamberPanel {
             this.eventBus.emit('toast:show', `Test completed in ${executionTime}s`, 'success');
         }
         
+        // Enable response action buttons if response is available
+        if (this.copyResponseBtn) {
+            this.copyResponseBtn.disabled = !result.response;
+        }
+        if (this.saveResponseBtn) {
+            this.saveResponseBtn.disabled = !result.response;
+        }
+        
         // Enable copy button if YAML is available
         if (this.copyYamlBtn) {
             this.copyYamlBtn.disabled = !result.yaml_config;
+        }
+        
+        // Trigger Kiroween effect if test was successful and effect is enabled
+        if (this.kiroweenEffect && this.isTestSuccessful(result)) {
+            console.log('Triggering Kiroween effect - enabled:', this.kiroweenEffect.isEnabled(), 
+                       'ghostAvailable:', this.kiroweenEffect.ghostAvailable);
+            this.kiroweenEffect.trigger();
+        } else {
+            console.log('Kiroween effect NOT triggered - hasEffect:', !!this.kiroweenEffect, 
+                       'isSuccessful:', this.isTestSuccessful(result));
         }
         
         this.eventBus.emit('test:completed', result);
@@ -336,6 +459,24 @@ export class TestChamberPanel {
         
         // Insert error message after the element
         element.parentNode.insertBefore(errorElement, element.nextSibling);
+        
+        // Expand parameters section if error is in a parameter field
+        if (elementId === 'model-select' || elementId === 'temperature-slider') {
+            this.expandParametersSection();
+        }
+    }
+    
+    expandParametersSection() {
+        // Import and use the collapsibleManager to expand the parameters section
+        import('../utils/CollapsibleManager.js').then(module => {
+            const collapsibleManager = module.collapsibleManager;
+            if (collapsibleManager && !collapsibleManager.isExpanded('test-parameters')) {
+                collapsibleManager.expand('test-parameters');
+                console.log('TestChamberPanel: Parameters section expanded due to validation error');
+            }
+        }).catch(error => {
+            console.error('Failed to expand parameters section:', error);
+        });
     }
     
     removeValidationError(elementId) {
@@ -366,6 +507,14 @@ export class TestChamberPanel {
         // Clear YAML output
         if (this.yamlOutput) {
             this.yamlOutput.textContent = '';
+        }
+        
+        // Disable response action buttons
+        if (this.copyResponseBtn) {
+            this.copyResponseBtn.disabled = true;
+        }
+        if (this.saveResponseBtn) {
+            this.saveResponseBtn.disabled = true;
         }
         
         // Disable copy button
@@ -401,6 +550,9 @@ export class TestChamberPanel {
         if (this.temperatureSlider) {
             this.temperatureSlider.disabled = isLoading;
         }
+        if (this.timeoutSlider) {
+            this.timeoutSlider.disabled = isLoading;
+        }
     }
     
     displayTestError(error) {
@@ -423,5 +575,46 @@ export class TestChamberPanel {
         if (this.responseOutput) {
             this.responseOutput.style.color = '';
         }
+    }
+    
+    // Kiroween Effect Methods
+    
+    initKiroweenCheckbox() {
+        if (!this.kiroweenCheckbox || !this.kiroweenEffect) return;
+        
+        // Sync checkbox with stored preference
+        this.kiroweenCheckbox.checked = this.kiroweenEffect.isEnabled();
+        console.log('TestChamberPanel: Kiroween checkbox initialized, enabled:', this.kiroweenEffect.isEnabled());
+    }
+    
+    handleKiroweenToggle(enabled) {
+        if (!this.kiroweenEffect) return;
+        
+        this.kiroweenEffect.setEnabled(enabled);
+        console.log('TestChamberPanel: Kiroween effect toggled:', enabled);
+    }
+    
+    isTestSuccessful(result) {
+        // Test is successful if:
+        // 1. Response is present and non-empty
+        // 2. No error property exists
+        // 3. Status is not 'error' or 'timeout' (if status exists)
+        
+        if (!result) return false;
+        
+        // Check for error property
+        if (result.error) return false;
+        
+        // Check status if it exists
+        if (result.status && (result.status === 'error' || result.status === 'timeout')) {
+            return false;
+        }
+        
+        // Check for valid response
+        if (!result.response || result.response.trim() === '') {
+            return false;
+        }
+        
+        return true;
     }
 }

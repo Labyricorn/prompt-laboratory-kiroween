@@ -1,5 +1,5 @@
 """
-End-to-End Integration Tests for PromptLab
+End-to-End Integration Tests for Prompt-Laboratory
 Tests complete user workflows, application startup, and component interactions
 """
 
@@ -62,7 +62,7 @@ class TestApplicationStartup:
                     
                     health_data = response.get_json()
                     assert health_data['status'] == 'healthy'
-                    assert health_data['service'] == 'PromptLab Backend'
+                    assert health_data['service'] == 'Prompt-Laboratory Backend'
                     assert 'components' in health_data
                     
                     # Test system info endpoint

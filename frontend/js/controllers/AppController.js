@@ -285,6 +285,12 @@ export class AppController {
         try {
             console.log('Running test with data:', testData);
             
+            // Activate test chamber mode if not already active
+            const layoutManager = window.layoutManager;
+            if (layoutManager && layoutManager.getCurrentMode() !== 'test-chamber-mode') {
+                layoutManager.setMode('test-chamber-mode');
+            }
+            
             // Set loading state
             this.testChamberPanel.setLoadingState(true);
             this.testChamberPanel.resetResponseStyling();
@@ -390,6 +396,24 @@ export class AppController {
             this.eventBus.emit('prompt:new');
         }
         
+        // Ctrl/Cmd + 1: Toggle Workbench mode
+        if ((event.ctrlKey || event.metaKey) && event.key === '1') {
+            event.preventDefault();
+            const layoutManager = window.layoutManager;
+            if (layoutManager) {
+                layoutManager.toggleWorkbenchMode();
+            }
+        }
+        
+        // Ctrl/Cmd + 2: Toggle Test Chamber mode
+        if ((event.ctrlKey || event.metaKey) && event.key === '2') {
+            event.preventDefault();
+            const layoutManager = window.layoutManager;
+            if (layoutManager) {
+                layoutManager.toggleTestChamberMode();
+            }
+        }
+        
         // Escape: Close modals
         if (event.key === 'Escape') {
             this.settingsModal.hide();
@@ -402,6 +426,12 @@ export class AppController {
             this.currentPrompt = null;
             this.testChamberPanel.clearPromptContext();
             this.setDirtyState(false);
+            
+            // Activate workbench mode if not already active
+            const layoutManager = window.layoutManager;
+            if (layoutManager && layoutManager.getCurrentMode() !== 'workbench-mode') {
+                layoutManager.setMode('workbench-mode');
+            }
         }
     }
     
