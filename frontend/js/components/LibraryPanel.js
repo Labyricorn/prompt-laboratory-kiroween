@@ -371,12 +371,22 @@ export class LibraryPanel {
             modal.setAttribute('aria-modal', 'true');
             modal.setAttribute('aria-labelledby', 'edit-prompt-title');
             
+            // Build objective section if it exists
+            const objectiveSection = prompt.objective ? `
+                <div class="form-group">
+                    <label for="objective-display">Prompt Objective:</label>
+                    <div id="objective-display" class="objective-display">${this.escapeHtml(prompt.objective)}</div>
+                    <div class="form-help">To edit the objective, load this prompt in the Workbench</div>
+                </div>
+            ` : '';
+            
             modal.innerHTML = `
                 <div class="modal-content">
                     <div class="modal-header">
                         <h3 id="edit-prompt-title">Edit Prompt</h3>
                     </div>
                     <div class="modal-body">
+                        ${objectiveSection}
                         <div class="form-group">
                             <label for="name-input">Prompt Name:</label>
                             <input type="text" 

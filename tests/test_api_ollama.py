@@ -169,6 +169,7 @@ class TestRunTestEndpoint:
             'You are a helpful assistant.',
             'Hello',
             None,
+            None,
             None
         )
     
@@ -196,7 +197,8 @@ class TestRunTestEndpoint:
             'Custom prompt',
             'Test input',
             'custom-model',
-            0.9
+            0.9,
+            None
         )
     
     def test_run_test_missing_system_prompt(self, client):

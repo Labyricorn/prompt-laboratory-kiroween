@@ -5,10 +5,12 @@ A local-first prompt engineering environment for creating, refining, testing, an
 ## ✨ Features
 
 - **🎯 Objective-to-Prompt Refinement**: Transform simple objectives into detailed system prompts using AI assistance
+- **💡 Objective Management**: Save and edit prompt objectives alongside your prompts for better organization
 - **📝 Advanced Prompt Editor**: Monaco Editor with syntax highlighting and auto-save functionality
 - **🧪 Interactive Testing**: Test prompts with configurable parameters against local AI models
 - **📚 Prompt Library**: Organize and search your prompt collection with metadata
 - **🔄 Import/Export**: Backup and share your prompt libraries with conflict resolution
+- **🌐 Public Access Mode**: Serve to network/internet with `--www` flag for demos and collaboration
 - **⚙️ Flexible Configuration**: Easy setup with automatic Ollama integration and connection testing
 - **🌙 Dark Mode**: Toggle between light and dark themes with persistent preferences
 - **📋 Copy to Clipboard**: Easy copying of system prompts and configurations
@@ -48,7 +50,20 @@ A local-first prompt engineering environment for creating, refining, testing, an
 
 3. **Start Prompt-Laboratory**
    ```bash
+   # Local access only (default)
    python run.py
+   
+   # Public/network access (for demos, hackathons, etc.)
+   python run.py --www
+   
+   # Custom port
+   python run.py --port 8080
+   
+   # Don't auto-open browser
+   python run.py --no-browser
+   
+   # See all options
+   python run.py --help
    ```
 
 That's it! The startup script will:
@@ -58,11 +73,34 @@ That's it! The startup script will:
 - 🤖 Test Ollama connection
 - 🌐 Open your browser to the application
 
+### Command-Line Options
+
+| Option | Description |
+|--------|-------------|
+| `--www` | Serve publicly on all network interfaces (0.0.0.0) |
+| `--port PORT` | Specify custom port (default: 5000) |
+| `--no-browser` | Don't automatically open browser |
+| `--help` | Show all available options |
+
+**Public Access Mode (`--www`):**
+- Binds to `0.0.0.0` instead of `127.0.0.1`
+- Displays your local network IP for sharing
+- Shows security warning about network accessibility
+- Perfect for demos, hackathons, and team collaboration
+
 ## 🎮 Usage Guide
 
 ### New Features & Improvements
 
 **Recent Updates:**
+- **🎯 Prompt Objective Field**: Save and edit prompt objectives alongside your prompts
+  - Objectives are saved with prompts and can be edited in the Workbench
+  - View objectives in the edit dialog (read-only display)
+  - Load prompts to edit their objectives in the Workbench area
+- **🌐 Public Access Mode**: New `--www` flag for serving to network/internet
+  - Perfect for hackathons, demos, and team collaboration
+  - Shows local network IP for easy sharing
+  - Security warnings when running in public mode
 - **🌙 Dark Mode**: Toggle between light and dark themes in settings
 - **📋 Copy to Clipboard**: Copy button next to system prompts with visual feedback
 - **🔔 Enhanced Notifications**: Toast messages for all operations with success/error states
@@ -100,11 +138,12 @@ That's it! The startup script will:
 - **Connection Status**: Shows "Ollama Connected" with endpoint information
 
 #### 🛠️ Workbench Panel (Center)
-- **Objective Input**: Enter simple prompt ideas for AI refinement
+- **Objective Input**: Enter and edit prompt objectives (saved with prompts)
 - **Refine Button**: AI-powered prompt enhancement with loading indicators
 - **Monaco Editor**: Advanced prompt editing with syntax highlighting and auto-save detection
 - **Save Controls**: Save new prompts or update existing ones with dirty state warnings
 - **Copy Button**: Copy system prompts to clipboard with visual feedback
+- **Objective Editing**: Load prompts to edit their objectives directly in the Workbench
 
 #### 🧪 Test Chamber (Right)
 - **Test Input**: Enter messages to test your prompts
@@ -129,6 +168,7 @@ That's it! The startup script will:
 2. **Refine to System Prompt**
    - Click "Refine" button (shows loading indicator)
    - AI generates detailed prompt in Monaco Editor
+   - Objective is automatically saved with the prompt
    ```
    You are an expert code reviewer with 10+ years of experience...
    [AI generates detailed prompt with syntax highlighting]
@@ -142,12 +182,27 @@ That's it! The startup script will:
 
 4. **Save and Iterate**
    - Save as "Code Review Assistant v1" (gets confirmation toast)
+   - Objective is saved with the prompt for future reference
    - Copy system prompt to clipboard if needed
+   - Load prompt later to edit objective in Workbench
    - Make improvements based on test results
    - Update existing prompt or save as new version
    - Export library for backup
 
-5. **Theme and Settings**
+5. **Edit Objectives**
+   - Load a saved prompt from the library
+   - Objective appears in the Workbench input field
+   - Edit the objective text as needed
+   - Save to update the prompt with new objective
+   - View objective (read-only) in the edit dialog
+
+6. **Share Your Work**
+   - Run with `--www` flag for public access
+   - Share your local network IP with team members
+   - Demo prompts at hackathons or presentations
+   - Export library for sharing with others
+
+7. **Theme and Settings**
    - Toggle dark mode for comfortable editing
    - Configure Ollama endpoint if using non-standard setup
    - Test connection and refresh model list

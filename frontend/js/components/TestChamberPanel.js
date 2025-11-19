@@ -526,17 +526,11 @@ export class TestChamberPanel {
     setLoadingState(isLoading) {
         if (this.runTestBtn) {
             this.runTestBtn.disabled = isLoading;
-            const spinner = this.runTestBtn.querySelector('.loading-spinner');
-            const text = this.runTestBtn.querySelector('.btn-text');
             
-            if (spinner && text) {
-                if (isLoading) {
-                    spinner.style.display = 'inline-block';
-                    text.textContent = 'Running Test...';
-                } else {
-                    spinner.style.display = 'none';
-                    text.textContent = 'Run Test';
-                }
+            if (isLoading) {
+                this.runTestBtn.classList.add('loading');
+            } else {
+                this.runTestBtn.classList.remove('loading');
             }
         }
         

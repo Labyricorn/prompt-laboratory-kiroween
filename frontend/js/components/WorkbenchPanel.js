@@ -157,9 +157,9 @@ export class WorkbenchPanel {
         
         this.currentPrompt = prompt;
         
-        // Clear objective input when loading a saved prompt
+        // Load objective into input field when loading a saved prompt
         if (this.objectiveInput) {
-            this.objectiveInput.value = '';
+            this.objectiveInput.value = prompt.objective || '';
         }
         
         if (this.editor && prompt.system_prompt) {
@@ -304,8 +304,20 @@ export class WorkbenchPanel {
         
         try {
             if (this.currentPrompt) {
-                // Update existing prompt
-                await this.updateExistingPrompt();
+                // Check if the prompt was loaded but not modified via "New"
+                // Show confirmation dialog to prevent accidental overwrites
+                const choice = await this.showSaveConfirmationDialog(this.currentPrompt.name);
+                
+                if (choice === 'save') {
+                    // Update existing prompt
+                    await this.updateExistingPrompt();
+                } else if (choice === 'saveAs') {
+                    // Save as new prompt
+                    await this.savePromptAs(this.currentPrompt.name);
+                } else {
+                    // Cancel - do nothing
+                    return;
+                }
             } else {
                 // Save as new prompt
                 await this.savePromptAs();
@@ -369,11 +381,19 @@ export class WorkbenchPanel {
         console.log('WorkbenchPanel.getPromptData() - config:', this.config);
         console.log('WorkbenchPanel.getPromptData() - default_model:', this.config?.default_model);
         
-        return {
+        const data = {
             system_prompt: this.editor?.getValue() || '',
             model: this.config?.default_model || 'llama2',
             temperature: this.config?.default_temperature || 0.7
         };
+        
+        // Always include objective if it exists (for both new and existing prompts)
+        const objective = this.objectiveInput?.value?.trim();
+        if (objective) {
+            data.objective = objective;
+        }
+        
+        return data;
     }
     
     setDirtyState(dirty) {
@@ -403,17 +423,12 @@ export class WorkbenchPanel {
     setRefineLoading(loading) {
         if (!this.refineBtn) return;
         
-        const btnText = this.refineBtn.querySelector('.btn-text');
-        const spinner = this.refineBtn.querySelector('.loading-spinner');
+        this.refineBtn.disabled = loading;
         
         if (loading) {
-            this.refineBtn.disabled = true;
-            if (btnText) btnText.style.display = 'none';
-            if (spinner) spinner.style.display = 'inline-block';
+            this.refineBtn.classList.add('loading');
         } else {
-            this.refineBtn.disabled = false;
-            if (btnText) btnText.style.display = 'inline';
-            if (spinner) spinner.style.display = 'none';
+            this.refineBtn.classList.remove('loading');
         }
     }
     
@@ -453,6 +468,86 @@ export class WorkbenchPanel {
         
         // Update Test Chamber with the updated prompt
         this.eventBus.emit('prompt:selected', updatedPrompt);
+    }
+    
+    async showSaveConfirmationDialog(promptName) {
+        return new Promise((resolve) => {
+            const modal = this.createSaveConfirmationDialog(promptName, resolve);
+            document.body.appendChild(modal);
+            
+            // Focus the Save button by default
+            const saveBtn = modal.querySelector('.btn-primary');
+            if (saveBtn) {
+                setTimeout(() => saveBtn.focus(), 100);
+            }
+        });
+    }
+    
+    createSaveConfirmationDialog(promptName, resolve) {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal-content save-confirmation-dialog';
+        
+        modal.innerHTML = `
+            <h3>Overwrite Existing Prompt?</h3>
+            <p>You are about to overwrite the existing prompt "<strong>${this.escapeHtml(promptName)}</strong>".</p>
+            <p>What would you like to do?</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary cancel-btn">Cancel</button>
+                <button class="btn btn-secondary save-as-btn">Save As New</button>
+                <button class="btn btn-primary save-btn">Overwrite</button>
+            </div>
+        `;
+        
+        overlay.appendChild(modal);
+        
+        // Button handlers
+        const saveBtn = modal.querySelector('.save-btn');
+        const saveAsBtn = modal.querySelector('.save-as-btn');
+        const cancelBtn = modal.querySelector('.cancel-btn');
+        
+        saveBtn.addEventListener('click', () => {
+            document.body.removeChild(overlay);
+            resolve('save');
+        });
+        
+        saveAsBtn.addEventListener('click', () => {
+            document.body.removeChild(overlay);
+            resolve('saveAs');
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+            document.body.removeChild(overlay);
+            resolve('cancel');
+        });
+        
+        // Close on overlay click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                document.body.removeChild(overlay);
+                resolve('cancel');
+            }
+        });
+        
+        // Close on Escape key
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                document.body.removeChild(overlay);
+                document.removeEventListener('keydown', handleEscape);
+                resolve('cancel');
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+        
+        return overlay;
+    }
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
     
     async showNameDialog(defaultName = '') {

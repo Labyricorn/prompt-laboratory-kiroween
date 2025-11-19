@@ -29,18 +29,20 @@ class Prompt(Base):
     
     # Optional fields
     description = Column(Text, nullable=True)
+    objective = Column(Text, nullable=True)
     
     # Timestamps
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
     
-    def __init__(self, name, system_prompt, model='llama2', temperature=0.7, description=None):
+    def __init__(self, name, system_prompt, model='llama2', temperature=0.7, description=None, objective=None):
         """Initialize a new Prompt instance with validation"""
         self.name = name
         self.system_prompt = system_prompt
         self.model = model
         self.temperature = temperature
         self.description = description
+        self.objective = objective
     
     @validates('name')
     def validate_name(self, key, name):
@@ -110,6 +112,17 @@ class Prompt(Base):
             return description if description else None
         return description
     
+    @validates('objective')
+    def validate_objective(self, key, objective):
+        """Validate optional objective field"""
+        if objective is not None:
+            objective = objective.strip()
+            if len(objective) > 2000:
+                raise ValueError("Objective cannot exceed 2,000 characters")
+            # Return None for empty objectives
+            return objective if objective else None
+        return objective
+    
     def to_dict(self):
         """
         Convert Prompt instance to dictionary for API responses
@@ -121,6 +134,7 @@ class Prompt(Base):
             'id': self.id,
             'name': self.name,
             'description': self.description,
+            'objective': self.objective,
             'system_prompt': self.system_prompt,
             'model': self.model,
             'temperature': self.temperature,
@@ -135,7 +149,7 @@ class Prompt(Base):
         Args:
             data (dict): Dictionary containing fields to update
         """
-        updatable_fields = ['name', 'description', 'system_prompt', 'model', 'temperature']
+        updatable_fields = ['name', 'description', 'objective', 'system_prompt', 'model', 'temperature']
         
         for field in updatable_fields:
             if field in data:

@@ -87,6 +87,11 @@ def validate_prompt_data(data, required_fields=None):
         if len(description) > 1000:
             errors['description'] = 'Description cannot exceed 1,000 characters'
     
+    if 'objective' in data and data['objective'] is not None:
+        objective = data['objective'].strip()
+        if len(objective) > 2000:
+            errors['objective'] = 'Objective cannot exceed 2,000 characters'
+    
     return errors
 
 @prompts_bp.route('/prompts', methods=['GET'])
@@ -194,6 +199,10 @@ def create_prompt():
         if description_value is not None:
             description_value = description_value.strip() or None
         
+        objective_value = data.get('objective')
+        if objective_value is not None:
+            objective_value = objective_value.strip() or None
+        
         name_value = data.get('name', '').strip()
         system_prompt_value = data.get('system_prompt', '').strip()
         model_value = (data.get('model') or 'llama2').strip()
@@ -203,7 +212,8 @@ def create_prompt():
             system_prompt=system_prompt_value,
             model=model_value,
             temperature=float(data.get('temperature', 0.7)),
-            description=description_value
+            description=description_value,
+            objective=objective_value
         )
         
         # Add to session and commit
@@ -645,7 +655,8 @@ def import_library():
                     system_prompt=prompt_data['system_prompt'],
                     model=prompt_data.get('model', 'llama2'),
                     temperature=prompt_data.get('temperature', 0.7),
-                    description=prompt_data.get('description')
+                    description=prompt_data.get('description'),
+                    objective=prompt_data.get('objective')
                 )
                 
                 session.add(prompt)
@@ -762,6 +773,13 @@ def validate_imported_prompt_data(prompt_data):
             errors.append('Description must be a string')
         elif len(description.strip()) > 1000:
             errors.append('Description cannot exceed 1,000 characters')
+    
+    if 'objective' in prompt_data and prompt_data['objective'] is not None:
+        objective = prompt_data['objective']
+        if not isinstance(objective, str):
+            errors.append('Objective must be a string')
+        elif len(objective.strip()) > 2000:
+            errors.append('Objective cannot exceed 2,000 characters')
     
     return errors
 

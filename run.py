@@ -13,6 +13,7 @@ import time
 import threading
 import logging
 import subprocess
+import argparse
 from pathlib import Path
 from datetime import datetime
 
@@ -209,9 +210,36 @@ def run_initialization_checks():
     
     return len(failed_checks) == 0
 
+def parse_arguments():
+    """Parse command-line arguments"""
+    parser = argparse.ArgumentParser(
+        description='Prompt-Laboratory - Prompt Engineering Environment',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument(
+        '--www',
+        action='store_true',
+        help='Serve the application publicly on all network interfaces (0.0.0.0)'
+    )
+    parser.add_argument(
+        '--port',
+        type=int,
+        default=None,
+        help='Port to run the server on (default: from config)'
+    )
+    parser.add_argument(
+        '--no-browser',
+        action='store_true',
+        help='Do not automatically open browser'
+    )
+    return parser.parse_args()
+
 def main():
     """Main startup function with comprehensive initialization"""
     global shutdown_requested
+    
+    # Parse command-line arguments
+    args = parse_arguments()
     
     # Setup logging first
     logger = setup_logging()
@@ -241,28 +269,50 @@ def main():
         
         app = create_app()
         
-        # Prepare server URL
-        url = f"http://{config.flask_host}:{config.flask_port}"
+        # Override host if --www flag is used
+        host = '0.0.0.0' if args.www else config.flask_host
+        port = args.port if args.port else config.flask_port
         
-        # Schedule browser opening
-        open_browser_delayed(url)
+        # Prepare server URL
+        if args.www:
+            # Show local network IP for public access
+            import socket
+            try:
+                hostname = socket.gethostname()
+                local_ip = socket.gethostbyname(hostname)
+                url = f"http://{local_ip}:{port}"
+                logger.info(f"🌍 Public access enabled - accessible from network")
+                logger.info(f"📡 Local network URL: {url}")
+            except:
+                url = f"http://localhost:{port}"
+        else:
+            url = f"http://{host}:{port}"
+        
+        # Schedule browser opening unless disabled
+        if not args.no_browser:
+            open_browser_delayed(url)
         
         # Display startup information
         logger.info("=" * 50)
         logger.info("🎯 Prompt-Laboratory Server Starting")
         logger.info(f"📍 URL: {url}")
-        logger.info(f"🏠 Host: {config.flask_host}")
-        logger.info(f"🔌 Port: {config.flask_port}")
+        logger.info(f"🏠 Host: {host}")
+        logger.info(f"🔌 Port: {port}")
         logger.info(f"🐛 Debug: {config.flask_debug}")
         logger.info(f"🗄️ Database: {config.database_path}")
         logger.info(f"🤖 Ollama: {config.ollama_endpoint}")
+        if args.www:
+            logger.info("🌐 Mode: PUBLIC (accessible from network)")
+            logger.info("⚠️  WARNING: Server is accessible from your network!")
+        else:
+            logger.info("🔒 Mode: LOCAL (localhost only)")
         logger.info("=" * 50)
         logger.info("✨ Server ready! Press Ctrl+C to stop")
         
         # Start the Flask application
         app.run(
-            host=config.flask_host,
-            port=config.flask_port,
+            host=host,
+            port=port,
             debug=config.flask_debug,
             use_reloader=False  # Disable reloader to prevent double startup
         )

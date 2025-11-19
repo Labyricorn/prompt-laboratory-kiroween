@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Spinner Centering Test</title>
+    <link rel="stylesheet" href="frontend/css/styles.css">
+    <style>
+        body {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+        .test-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .test-section h2 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        .button-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .status {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <h1>Button Spinner Centering Test</h1>
+    
+    <div class="test-section">
+        <h2>Refine Button (Accent)</h2>
+        <div class="button-row">
+            <button id="refine-btn" class="btn btn-accent">
+                <span class="btn-text">Refine</span>
+                <span class="loading-spinner" aria-hidden="true"></span>
+            </button>
+            <button id="toggle-refine" class="btn btn-secondary">Toggle Loading</button>
+            <span class="status success">✓ Spinner should be centered</span>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Run Test Button (Accent)</h2>
+        <div class="button-row">
+            <button id="run-test-btn" class="btn btn-accent">
+                <span class="btn-text">Run Test</span>
+                <span class="loading-spinner" aria-hidden="true"></span>
+            </button>
+            <button id="toggle-test" class="btn btn-secondary">Toggle Loading</button>
+            <span class="status success">✓ Spinner should be centered</span>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Other Button Sizes</h2>
+        <div class="button-row">
+            <button id="primary-btn" class="btn btn-primary">
+                <span class="btn-text">Primary Button</span>
+                <span class="loading-spinner" aria-hidden="true"></span>
+            </button>
+            <button id="toggle-primary" class="btn btn-secondary">Toggle Loading</button>
+        </div>
+        <div class="button-row">
+            <button id="small-btn" class="btn btn-small btn-secondary">
+                <span class="btn-text">Small Button</span>
+                <span class="loading-spinner" aria-hidden="true"></span>
+            </button>
+            <button id="toggle-small" class="btn btn-secondary">Toggle Loading</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Instructions</h2>
+        <ul>
+            <li>Click "Toggle Loading" buttons to see the spinner in action</li>
+            <li>The spinner should be perfectly centered both horizontally and vertically</li>
+            <li>The button text should disappear when loading</li>
+            <li>The button should maintain its size when loading</li>
+        </ul>
+    </div>
+    
+    <script>
+        // Toggle loading states
+        document.getElementById('toggle-refine').addEventListener('click', () => {
+            document.getElementById('refine-btn').classList.toggle('loading');
+        });
+        
+        document.getElementById('toggle-test').addEventListener('click', () => {
+            document.getElementById('run-test-btn').classList.toggle('loading');
+        });
+        
+        document.getElementById('toggle-primary').addEventListener('click', () => {
+            document.getElementById('primary-btn').classList.toggle('loading');
+        });
+        
+        document.getElementById('toggle-small').addEventListener('click', () => {
+            document.getElementById('small-btn').classList.toggle('loading');
+        });
+        
+        console.log('Button spinner centering test loaded');
+        console.log('Click the "Toggle Loading" buttons to test spinner centering');
+    </script>
+</body>
+</html>

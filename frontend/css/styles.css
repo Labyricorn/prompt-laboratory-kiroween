@@ -247,11 +247,13 @@ body {
     transition: var(--transition);
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     text-decoration: none;
     white-space: nowrap;
     line-height: 1.5;
     box-sizing: border-box;
+    position: relative;
 }
 
 .panel-header .btn {
@@ -707,14 +709,19 @@ body {
     border: 2px solid transparent;
     border-top: 2px solid currentColor;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin-centered 1s linear infinite;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin-centered {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 /* Button loading state */
-.btn {
-    position: relative;
-}
-
 .btn.loading {
     color: transparent;
 }
@@ -724,12 +731,7 @@ body {
 }
 
 .btn.loading .loading-spinner {
-    display: inline-block;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-top: -8px;  /* Half of spinner height (16px / 2) */
-    margin-left: -8px; /* Half of spinner width (16px / 2) */
+    display: block;
 }
 
 .btn:disabled {
@@ -744,6 +746,7 @@ body {
     border-top: 4px solid var(--primary-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
 }
 
 @keyframes spin {
@@ -822,12 +825,34 @@ body {
     margin-top: 2rem;
 }
 
-.btn.loading .btn-text {
-    opacity: 0.7;
+/* Save Confirmation Dialog */
+.save-confirmation-dialog h3 {
+    margin: 0 0 1rem 0;
+    color: var(--dark-color);
+    font-size: 1.25rem;
 }
 
-.btn.loading .loading-spinner {
-    display: inline-block;
+.save-confirmation-dialog p {
+    margin: 0 0 0.75rem 0;
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+.save-confirmation-dialog p:last-of-type {
+    margin-bottom: 1.5rem;
+}
+
+.save-confirmation-dialog strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.save-confirmation-dialog .modal-actions {
+    gap: 0.75rem;
+}
+
+.save-confirmation-dialog .modal-actions .btn {
+    min-width: 100px;
 }
 
 /* Loading Overlay */
@@ -1472,38 +1497,10 @@ Validation Error Styles */
     max-width: 300px;
 }
 
-.loading-spinner-large {
-    width: 40px;
-    height: 40px;
-    border: 4px solid var(--border-color);
-    border-top: 4px solid var(--primary-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 1rem;
-}
-
 .loading-text {
     margin: 0;
     color: var(--dark-color);
     font-weight: 500;
-}
-
-.loading-spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid transparent;
-    border-top: 2px solid currentColor;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    display: none;
-}
-
-.btn.loading .loading-spinner {
-    display: inline-block;
-}
-
-.btn.loading .btn-text {
-    opacity: 0.7;
 }
 
 @keyframes spin {
@@ -1760,26 +1757,6 @@ Validation Error Styles */
     gap: 0.5rem;
     padding: 1rem 1.5rem;
     border-top: 1px solid var(--border-color);
-}
-
-/* Loading Button States */
-.btn.loading {
-    position: relative;
-    pointer-events: none;
-}
-
-.btn.loading::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 16px;
-    height: 16px;
-    margin: -8px 0 0 -8px;
-    border: 2px solid transparent;
-    border-top: 2px solid currentColor;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
 }
 
 /* Progress Indicators */
@@ -2553,4 +2530,25 @@ iroween Effect Styles */
         opacity: 0.5;
         transition: opacity 0.3s ease;
     }
+}
+
+/* Objective Display in Edit Dialog */
+.objective-display {
+    padding: 0.75rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.form-help {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
 }
